@@ -10,4 +10,4 @@ SlowFFT.cpp/h are for validation of the FFT, but not really usable for anything 
 
 I have tried to unlearn old-style C and adopt a  more morden C++ style, using std-components.
 
-PrimeFactor.cpp contains main() and a number of demo/test routines both for the FFT and the Calculator.
+PrimeFactorFFT.cpp contains main() and a number of demo/test routines both for the FFT and the Calculator.
