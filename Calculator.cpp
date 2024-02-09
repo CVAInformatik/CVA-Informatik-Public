@@ -319,6 +319,14 @@ void Calculator::ChangeSign()
 	}
 }
 
+/*
+
+the code below is adapted from
+
+		Algorithm 14.9 	in
+
+		The Handbook of Applied Cryptograpy by A.Menezes, P van Oorschot and S.Vanstone (CRC Press 1996).
+*/
 void Calculator::Add()
 	{
 		if (stack.size() < 2)
