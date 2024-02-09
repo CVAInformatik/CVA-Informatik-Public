@@ -7,6 +7,17 @@ This program is distributed in the hope that it will be useful, but WITHOUT ANY 
 You should have received a copy of the GNU General Public License along with this program; if not, write to the Free Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111 - 1307 USA
 This General Public License does not permit incorporating your program into proprietary programs.If your program is a subroutine library, you may consider it more useful to permit linking proprietary applications with the library.
 If this is what you want to do, use the GNU Library General Public License instead of this License.
+
+Inspiration originally from
+
+				Clive Temperton
+				Journal of Computational Physics 58, 283-299 (1985)
+				"Implementation of a Self-Sorting In-Place Prime Factor FFT Algorithm."
+
+		 And the work by
+
+					C. Sidney Burrus
+					Ivan Selesnick   at RICE University
 */
 #include <vector>
 
