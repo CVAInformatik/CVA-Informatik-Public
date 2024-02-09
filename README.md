@@ -8,6 +8,8 @@ Primetable.h contains a prime-table class, which is an implementation of the wel
 
 SlowFFT.cpp/h are for validation of the FFT, but not really usable for anything else.
 
-I have tried to unlearn old-style C and adopt a  more morden C++ style, using std-components.
+I have tried to unlearn old-style C and adopt a  more modern C++ style, using std-components.
 
 PrimeFactorFFT.cpp contains main() and a number of demo/test routines both for the FFT and the Calculator.
+
+The code is all C++, no assembly required.
