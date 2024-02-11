@@ -547,7 +547,6 @@ void Calculator::Mul()
 			Carry(size, real1);			
 
 			/* convert back to radix 10^9 from radix 10^3 double*/
-			BIntPtr temp(new BInt); temp->number.clear();
 
 			for (int i = 0; i < pf.Status(); i+=3)
 			{
