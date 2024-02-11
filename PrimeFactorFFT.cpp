@@ -856,124 +856,24 @@ void test15Jacobi()
 
 }
 
+
+bool MillerRabin(BInt& number);
+
 void test16MillerRabin(char c[]) {
-
-#define LIMIT 1000000
-#define WCOUNT 25
-    PrimeTable pt(LIMIT);
-
-    std::vector<unsigned int>  witnesses;
-
-    witnesses.push_back(2);
-    unsigned int i = 3;
-    while (witnesses.size() < WCOUNT) {
-        if (pt.IsPrime(i)) witnesses.push_back(i);
-        i = i + 2;
-    }
-
 
     Calculator cal; 
     cal.Push((char*) c );
-    if (cal.IsEven()) {
-        std::cout << "argument must be odd " << std::endl;
-    }
-    else {
-        cal.PopStore("m"); //store argument in "m"
-        for (int itx = 0; itx < 20000; itx++) {
-            cal.PushStore("m");
-            cal.Push(-1);
-            cal.Add();
-            cal.PopStore("m-1");
-            cal.PushStore("m-1");
-            int s = 0;
-            while (cal.IsEven()) {
-                cal.Div2();
-                cal.PopStore("d");
-                cal.PushStore("d");
-                s++;
-            }
-            cal.Pop(); //remove d from stack, it is saved in the store
-            // m-1 has now been cleaned of factor 2^s
-            for (size_t ix = 0; ix < witnesses.size(); ix++)
-            {
-                // calculate  x^d mod n 
-                cal.Push(witnesses[ix]); // x on stack
-                cal.PopStore("Multiplier");// x in multiplier
-                bool isZ = false;
-                cal.Push(1);
-                cal.PopStore("x");
-                do {
-                    cal.PushStore("d");
-                    bool isE = cal.IsEven();
-                    cal.Div2();
-                    isZ = cal.IsZero();
-                    cal.PopStore("d");
-                    cal.PushStore("x");
-                    if (!isE) {
-                        cal.PushStore("Multiplier");
-                        cal.Mul();
-                        cal.PushStore("m");
-                        cal.Mod();
-                    }
-                    cal.PopStore("x");
-                    if (!isZ) {
-                        cal.PushStore("Multiplier");
-                        cal.Square();
-                        cal.PushStore("m");
-                        cal.Mod();
-                        cal.PopStore("Multiplier"); // 
-                    }
-                } while (!isZ);
-                // repeat s times...
-                cal.PushStore("x");
-                cal.PopStore("y");
-                for (int sx = 0; sx < s; sx++) {
-                    //cal.dumpStack(4);
-                    cal.PushStore("y");
-                    cal.Square();
-                    cal.PushStore("m");
-                    cal.Mod();
-                    cal.PopStore("y");
-                    cal.PushStore("y");
-                    cal.Push(1);
-                    if (cal.IsEqual()) {
-                        cal.PushStore("x");
-                        if (!cal.IsEqual()) {
-                            // x == 1
-                            cal.PushStore("m-1");
-                            if (!cal.IsEqual()) {
-                                //bingo
-                                cal.Pop();cal.Pop();cal.Pop();
-                                //std::cout << "Composite" << std::endl;
-                                goto loop;
-                            }
-                            cal.Pop(); //get rid "m-1" on stack
-                        }
-                        else
-                            cal.Pop(); // get rid of "x" on stack
-                        cal.Pop(); // get rid of "x" on stack
-                    }
-                    cal.Pop(); // get rid of 1 on stack
-                    cal.PopStore("x"); //save x = y
-
-                }
-                cal.PushStore("y");
-                cal.Push(1);
-                if (!cal.IsEqual()) {
-                    cal.Pop(); cal.Pop();
-                    //std::cout << "Composite" << std::endl;
-                    goto loop;
-                }
-            }
-            cal.PushStore("m");
-            std::cout << *cal.ItoA() << " is probably prime" << std::endl;
-            return;
-
-        loop: 
-            cal.PushStore("m");
-            cal.Push(2);
-            cal.Add();    
-            cal.PopStore("m");
+    for (int itx = 0; itx < 2000; itx++) {
+        cal.Push((char*)c);
+        cal.Push(2);
+        cal.Push(itx);
+        cal.Mul();
+        cal.Add();    
+        BInt temp;
+        cal.Pop(temp);
+        if (MillerRabin(temp)) {
+            cal.Push(temp);
+            std::cout << "probably prime: " << *cal.ItoA() << std::endl;
         }
     }
 }
@@ -1105,6 +1005,121 @@ void test18()
 
 }
 
+bool MillerRabin(BInt& number)
+{
+#define LIMIT 1000000
+#define WCOUNT 100
+	PrimeTable pt(LIMIT);
+
+	std::vector<unsigned int>  witnesses;
+
+	witnesses.push_back(2);
+	unsigned int i = 3;
+	while (witnesses.size() < WCOUNT) {
+		if (pt.IsPrime(i)) witnesses.push_back(i);
+		i = i + 2;
+	}
+
+    Calculator cal;
+	cal.Push(number);
+	if (cal.IsEven()) {
+		std::cout << "argument must be odd " << std::endl;
+        return false;
+	}
+	else {
+		cal.PopStore("m"); //store argument in "m"
+		cal.PushStore("m");
+		cal.Push(-1);
+		cal.Add();
+		cal.PopStore("m-1");
+		cal.PushStore("m-1");
+		int s = 0;
+		while (cal.IsEven()) {
+			cal.Div2();
+			cal.PopStore("d");
+			cal.PushStore("d");
+			s++;
+		}
+		cal.Pop(); //remove d from stack, it is saved in the store
+		// m-1 has now been cleaned of factor 2^s
+		for (size_t ix = 0; ix < witnesses.size(); ix++)
+		{
+			// calculate  x^d mod n 
+			cal.Push(witnesses[ix]); // x on stack
+			cal.PopStore("Multiplier");// x in multiplier
+			bool isZ = false;
+			cal.Push(1);
+			cal.PopStore("x");
+			do {
+				cal.PushStore("d");
+				bool isE = cal.IsEven();
+				cal.Div2();
+				isZ = cal.IsZero();
+				cal.PopStore("d");
+				cal.PushStore("x");
+				if (!isE) {
+					cal.PushStore("Multiplier");
+					cal.Mul();
+					cal.PushStore("m");
+					cal.Mod();
+				}
+				cal.PopStore("x");
+				if (!isZ) {
+					cal.PushStore("Multiplier");
+					cal.Square();
+					cal.PushStore("m");
+					cal.Mod();
+					cal.PopStore("Multiplier"); // 
+				}
+			} while (!isZ);
+			// repeat s times...
+			cal.PushStore("x");
+			cal.PopStore("y");
+			for (int sx = 0; sx < s; sx++) {
+				//cal.dumpStack(4);
+				cal.PushStore("y");
+				cal.Square();
+				cal.PushStore("m");
+				cal.Mod();
+				cal.PopStore("y");
+				cal.PushStore("y");
+				cal.Push(1);
+				if (cal.IsEqual()) {
+					cal.PushStore("x");
+					if (!cal.IsEqual()) {
+						// x == 1
+						cal.PushStore("m-1");
+						if (!cal.IsEqual()) {
+							//bingo
+							cal.Pop();cal.Pop();cal.Pop();
+							//std::cout << "Composite" << std::endl;
+                            return false;
+						}
+						cal.Pop(); //get rid "m-1" on stack
+					}
+					else
+						cal.Pop(); // get rid of "x" on stack
+					cal.Pop(); // get rid of "x" on stack
+				}
+				cal.Pop(); // get rid of 1 on stack
+				cal.PopStore("x"); //save x = y
+
+			}
+			cal.PushStore("y");
+			cal.Push(1);
+			if (!cal.IsEqual()) {
+				cal.Pop(); cal.Pop();
+				//std::cout << "Composite" << std::endl;
+				return false;
+			}
+		}
+		return true;
+	}
+
+}
+
+
+
 
 int main()
 {
@@ -1127,7 +1142,7 @@ int main()
     //test16MillerRabin((char*)"2147483647");// Mersenne Prime
     //test16MillerRabin((char *) "1228467");
     //test16MillerRabin((char*)"333228469");
-    //test16MillerRabin((char*)"777122847");
-    test18();
+    test16MillerRabin((char*)"19777122847");
+    //test18();
     std::cout << "Done !\n";
 }
