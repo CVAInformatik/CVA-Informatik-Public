@@ -464,9 +464,6 @@ void Calculator::Swap()
 
 void Calculator::Mul()
 {
-	PrimeFactorDFT pf;
-	BIntPtr temp(new BInt); temp->number.clear();
-	factorSeq  factors;
 
 	if (stack.size() < 2)
 		std::cout << "Mul() needs two arguments" << std::endl;
@@ -475,6 +472,12 @@ void Calculator::Mul()
 	else if (SMALLNUMBERLIMIT && stack[stack.size() - 2]->number.size() < 1+SMALLNUMBERLIMIT)
 		RussianPeasantMult();
 	else {
+		PrimeFactorDFT pf;
+		BIntPtr temp(new BInt); temp->number.clear();
+
+		temp->sign = stack[stack.size() - 1]->sign * stack[stack.size() - 2]->sign;
+
+		factorSeq  factors;
 
 		__int64 min_sz = stack[stack.size() - 1]->number.size() +
 			stack[stack.size() - 2]->number.size();
