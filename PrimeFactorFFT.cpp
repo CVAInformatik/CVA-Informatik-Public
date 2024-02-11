@@ -1038,6 +1038,73 @@ void test17()
 
 }
 
+void test18()
+{
+    Calculator c;
+
+    c.Push((char*)"9999999999999999999999999999999999");
+    c.Dup();
+    c.Mul();
+    std::cout << "res    " << *c.ItoA() << std::endl;
+    c.Push((char*)"9999999999999999999999999999999999");
+    c.Dup();
+    c.ChangeSign();
+    c.Mul();
+    std::cout << "res    " << *c.ItoA() << std::endl;
+    c.Push((char*)"9999999999999999999999999999999999");
+    c.Dup();
+    c.ChangeSign();
+    c.Swap();
+    c.Mul();
+    std::cout << "res    " << *c.ItoA() << std::endl;
+    c.Push((char*)"9999999999999999999999999999999999");
+    c.ChangeSign();
+    c.Dup();
+    c.Mul();
+    std::cout << "res    " << *c.ItoA() << std::endl;
+    c.Push((char*)"9999999999999999999999999999999999");
+    c.Push((char*)"999999");
+    c.Mul();
+    std::cout << "res    " << *c.ItoA() << std::endl;
+    c.Push((char*)"9999999999999999999999999999999999");
+    c.ChangeSign();
+    c.Push((char*)"999999");
+    c.Mul();
+    std::cout << "res    " << *c.ItoA() << std::endl;
+    c.Push((char*)"9999999999999999999999999999999999");
+    c.Push((char*)"999999");
+    c.ChangeSign();
+    c.Mul();
+    std::cout << "res    " << *c.ItoA() << std::endl;
+    c.Push((char*)"9999999999999999999999999999999999");
+    c.ChangeSign();
+    c.Push((char*)"999999");
+    c.ChangeSign();
+    c.Mul();
+    std::cout << "res    " << *c.ItoA() << std::endl;
+    c.Push((char*)"99999999");
+    c.Dup();
+    c.Mul();
+    std::cout << "res    " << *c.ItoA() << std::endl;
+    c.Push((char*)"99999999");
+    c.Dup();
+    c.ChangeSign();
+    c.Mul();
+    std::cout << "res    " << *c.ItoA() << std::endl;
+    c.Push((char*)"99999999");
+    c.Dup();
+    c.ChangeSign();
+    c.Swap();
+    c.Mul();
+    std::cout << "res    " << *c.ItoA() << std::endl;
+    c.Push((char*)"99999999");
+    c.ChangeSign();
+    c.Dup();
+    c.Mul();
+    std::cout << "res    " << *c.ItoA() << std::endl;
+
+}
+
 
 int main()
 {
@@ -1056,10 +1123,11 @@ int main()
     //test13QuotientReminder();
     //test14Exp();
     //test15Jacobi();
-    test17();
+    //test17();
     //test16MillerRabin((char*)"2147483647");// Mersenne Prime
     //test16MillerRabin((char *) "1228467");
     //test16MillerRabin((char*)"333228469");
     //test16MillerRabin((char*)"777122847");
+    test18();
     std::cout << "Done !\n";
 }
