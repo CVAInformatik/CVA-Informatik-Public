@@ -922,14 +922,17 @@ void Calculator::RussianPeasantMultAux(int sign, __int64 A, const BInt& B)
 {
 	BIntPtr result(new BInt); result->number.clear();
 	BInt    addend;  Dup(addend, B);
-	if (A && !IsZero(B)) result->sign = sign;
-	else result->sign = 1; // 0 is positive.
 	if(!IsZero(B))
 		while (A) {
 			if (A & 1) Add(*result, addend);
 			A = A >> 1;
 			if (A) Add(addend, addend);
 		}
+	else 
+		result->number.push_back(0);
+	Normalize(*result);
+	if (!IsZero(*result)) result->sign = sign;
+	else result->sign = 1; // 0 is positive.
 	stack.push_back(result);
 }
 
