@@ -1,0 +1,12 @@
+
+feb 13, 2024:
+
+Currently  PrimefactorFFTcpp compiles for debug  and run on Visual Studio 2022 Community Edition for both x64 and x32
+
+Compiliing for Release (both x64 and x86) causes test16MillerRabin() to fail one of my own checks...
+
+Intrigued I compiled it under Ubuntu in WSL with g++,   the test16MillerRabin() case works, soft of, 
+for some witnesses  it hits my checks, for other it seems to work.  
+
+I suspect this could be a bug of mine, and not, say, an optimizer induced defect.
+
