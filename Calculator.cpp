@@ -234,12 +234,12 @@ void Calculator::Push(const BInt  &b)
 void Calculator::Push(int  i)
 {
 	BIntPtr temp(new BInt); temp->number.clear();
-	__int64 it = i;
+	int64_t it = i;
 	temp->sign = (it >= 0)? 1 : - 1;
 
 	if (it < 0) it = -1 * i;
 	do {
-		temp->number.push_back(it % (__int64)RMOD);
+		temp->number.push_back(it % (int64_t)RMOD);
 		it = it / RMOD;
 	} while (it > 0);
 	stack.push_back(temp);
@@ -479,10 +479,10 @@ void Calculator::Mul()
 
 		factorSeq  factors;
 
-		__int64 min_sz = stack[stack.size() - 1]->number.size() +
+		int64_t min_sz = stack[stack.size() - 1]->number.size() +
 			stack[stack.size() - 2]->number.size();
 
-		__int64 Length = 1;
+		int64_t Length = 1;
 		
 		int factorlist[] = { 31,19,17,13,11,7,5,3,2 };
 
@@ -505,7 +505,7 @@ void Calculator::Mul()
 			Data* imag1 = new Data[pf.Status()];
 			Data* real3 = new Data[pf.Status()];
 			Data* imag3 = new Data[pf.Status()];
-			for (__int64 i = 0; i < pf.Status(); i++) {
+			for (int64_t i = 0; i < pf.Status(); i++) {
 				real1[i] = 0;
 				imag1[i] = 0;
 				real3[i] = 0;
@@ -520,8 +520,8 @@ void Calculator::Mul()
 			pf.forwardFFT(real1, imag1);
 
 			real3[0] = real1[0]* imag1[0];
-			__int64 size = pf.Status();
-			for (__int64 i = 1; i < size; i++)
+			int64_t size = pf.Status();
+			for (int64_t i = 1; i < size; i++)
 				{
 					Data X01Real = real1[i];
 					Data X01Imag = imag1[i];
@@ -536,7 +536,7 @@ void Calculator::Mul()
 					real3[i] = X3Real;
 					imag3[i] = X3Imag;
 				}
-			for (__int64 i = 0; i < size; i++)
+			for (int64_t i = 0; i < size; i++)
 			{
 				real1[i] = real3[i];
 				imag1[i] = imag3[i];
@@ -556,8 +556,8 @@ void Calculator::Mul()
 				temp->number.push_back(t0+t1+t2);
 			}
 
-			while (temp->number.size() && temp->number.back() == 0) temp->number.pop_back();
-
+			//while (temp->number.size() && temp->number.back() == 0) temp->number.pop_back();
+                        Normalize(temp);
 			stack.push_back(temp);
 
 			delete[] real1;
@@ -589,15 +589,15 @@ void Calculator::LoadFFT(BIntPtr A, Data* Buffer)
 		Buffer[FFTIndex] = 1.0;
 }
 
-void Calculator::Carry(__int64 size, Data* Buffer)
+void Calculator::Carry(int64_t size, Data* Buffer)
 {
-	__int64 carry = 0;
-	__int64 tmp = 0;
+	int64_t carry = 0;
+	int64_t tmp = 0;
 
 	/* conversion from 'balanced' Radix 10^3 double  to unbalanced Radix 10^3 double */
-	for (__int64 i = 0; i < size; i++)
+	for (int64_t i = 0; i < size; i++)
 	{
-		tmp = (__int64) std::round(Buffer[i]);
+		tmp = (int64_t) std::round(Buffer[i]);
 
 		tmp += carry; carry = 0;
 		while (tmp < ( - 1 * (RMOD3 / 2))) { tmp += RMOD3; carry--;	}
@@ -606,9 +606,9 @@ void Calculator::Carry(__int64 size, Data* Buffer)
 	}
 	carry = 0;
 	/* carry we are still in Radix 10^3 double*/
-	for (__int64 i = 0; i < size; i++)
+	for (int64_t i = 0; i < size; i++)
 	{
-	    tmp = (__int64) std::round(Buffer[i]);
+	    tmp = (int64_t) std::round(Buffer[i]);
 		tmp += carry;  carry = 0;
 		if (tmp < 0) { tmp += RMOD3; carry--; }
 		Buffer[i] = double(tmp) ;
@@ -636,7 +636,7 @@ void Calculator::GCD()
 void Calculator::Div2(BInt &A)
 {
 	int borrow = 0;
-	for (__int64 ix = A.number.size() - 1; ix >= 0; ix--)
+	for (int64_t ix = A.number.size() - 1; ix >= 0; ix--)
 	{
 		int t = A.number[ix] + borrow; borrow = 0;
 		if (t & 1)  borrow = RMOD;
@@ -872,10 +872,10 @@ void Calculator::QuotientRemainder()
 
 		for (; 1; )
 		{
-			if (stack.size() == 0)
-				std::cout << "Something is rotten" << std::endl;
-			if (stack.back()->number.size() > 3)
-				std::cout << "Something is rotten" << std::endl;
+	//		if (stack.size() == 0)
+	//			std::cout << "Something is rotten" << std::endl;
+	//		if (stack.back()->number.size() > 3)
+	//			std::cout << "Something is rotten" << std::endl;
 
 			Dup(*Quotient, *stack.back()); 	DUMPINT("Quotient ", *stack.back());
 			stack.push_back(_divisor);		DUMPINT("_divisor ", *stack.back());
@@ -918,7 +918,7 @@ void Calculator::QuotientRemainder()
 	}
 }
 
-void Calculator::RussianPeasantMultAux(int sign, __int64 A, const BInt& B)
+void Calculator::RussianPeasantMultAux(int sign, int64_t A, const BInt& B)
 {
 	BIntPtr result(new BInt); result->number.clear();
 	BInt    addend;  Dup(addend, B);
@@ -942,14 +942,14 @@ void Calculator::RussianPeasantMult()
 	BInt y;
 	
 	Pop(x); 	Pop(y);
-	__int64 xint = 0;
-	__int64 yint = 0;
+	int64_t xint = 0;
+	int64_t yint = 0;
 
 	if (x.number.size() < 1+ SMALLNUMBERLIMIT)
-		for (__int64 ix = x.number.size(); ix > 0;ix--)
+		for (int64_t ix = x.number.size(); ix > 0;ix--)
 			xint = (xint * RMOD) + x.number[ix - 1];
 	if (y.number.size() < 1+ SMALLNUMBERLIMIT)
-		for (__int64 iy = y.number.size(); iy > 0;iy--)
+		for (int64_t iy = y.number.size(); iy > 0;iy--)
 			yint = (yint * RMOD) + y.number[iy - 1];
 
 	if (yint == 0 )  		RussianPeasantMultAux(x.sign * y.sign, xint, y);
