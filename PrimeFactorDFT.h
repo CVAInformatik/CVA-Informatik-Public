@@ -1,6 +1,6 @@
 #pragma once
 /*
-Copyright  © 2024 Claus Vind-Andreasen
+Copyright  Â© 2024 Claus Vind-Andreasen
 
 This program is free software; you can redistribute it and /or modify it under the terms of the GNU General Public License as published by the Free Software Foundation; either version 2 of the License, or (at your option) any later version.
 This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.See the GNU General Public License for more details.
@@ -20,6 +20,14 @@ Inspiration originally from
 					Ivan Selesnick   at RICE University
 */
 #include <vector>
+
+#if 1   // windows
+typedef unsigned __int64  u64;
+typedef __int64  s64;
+#else   //linux
+typedef  uint64_t  u64;
+typedef  int64_t  s64;
+#endif
 
 typedef unsigned int uint;
 typedef std::vector<uint> factorSeq;
@@ -665,7 +673,7 @@ public:
 	__int64 Status() { return state; };
 
 	void forwardFFT(Data* real, Data *imag);
-	void InverseFFT(Data* real, Data *îmag);
+	void InverseFFT(Data* real, Data *Ã®mag);
 	void ScaledInverseFFT(Data* real, Data *imag);
 
 private:
