@@ -1,10 +1,14 @@
 
 CC = g++
 CFLAGS = -g 
-# CPPFLAGS = 
+CPPFLAGS =  -O3
 
 %.o  :  %.cpp
 	$(CC) -c $(CFLAGS) $(CPPFLAGS) $< -o $@
+
+
+clean:
+	rm *.o
 
 PrimeFactorFFT.o : PrimeFactorFFT.cpp
 
