@@ -10,3 +10,10 @@ for some witnesses  it hits my checks, for other it seems to work.
 
 I suspect this could be a bug of mine, and not, say, an optimizer induced defect.
 
+feb.14, 2024:  Bug of mine, I read past the end of the FFT buffer converting back to radix 10^9 from the radix 10^3 used 
+in the FFT multiplication. Solved by overallocating and initializing (to 0)  two extra bufferelements (doubles).
+Debug builds probably overallocates and put some pattern to detect over-writes, but doesn't detect 'over-reads'.
+
+Now works on Windows and Linux, both in Debug and Release.
+
+
