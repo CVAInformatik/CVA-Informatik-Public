@@ -40,7 +40,7 @@ int Calculator::TOSSize() {
 bool Calculator::IsZero(BInt arg)
 {
 	int num = 0;
-	for (int i = 0; !num && ( i < arg.number.size()); i++)	num |= arg.number[i];
+	for (unsigned int i = 0; !num && ( i < arg.number.size()); i++)	num |= arg.number[i];
 	return num == 0;
 }
 
@@ -179,6 +179,20 @@ void Calculator::Rand(){  // we are not aiming for perfection here.....
 
 }
 
+/*inline*/ void Calculator::PopStore(const std::string& loc) 
+{ 
+
+	if (stack.size() > 0){ 
+		u64 t = stack.back()->number.size();  // debug
+
+		Store[loc] = stack.back();	
+		stack.pop_back(); 
+		if (t != Store[loc]->number.size())  // debug
+			std::cout << "PopStore Error" << std::endl;  // debug
+	}
+};
+
+
 void Calculator::Div2(unsigned int Power)
 {
 	unsigned int _Shift = Power;
@@ -234,12 +248,12 @@ void Calculator::Push(const BInt  &b)
 void Calculator::Push(int  i)
 {
 	BIntPtr temp(new BInt); temp->number.clear();
-	int64_t it = i;
+	s64 it = i;
 	temp->sign = (it >= 0)? 1 : - 1;
 
 	if (it < 0) it = -1 * i;
 	do {
-		temp->number.push_back(it % (int64_t)RMOD);
+		temp->number.push_back(it % (s64)RMOD);
 		it = it / RMOD;
 	} while (it > 0);
 	stack.push_back(temp);
@@ -437,7 +451,7 @@ void Calculator::Add()
 void Calculator::PushStore(const std::string& loc) 
 {
 	if( Store.find(loc) != Store.end())
-			stack.push_back( Store[loc]);
+			stack.push_back( Store.find(loc)->second);
 	else
 		std::cout << "Lookup failed" << std::endl;
 }
@@ -462,6 +476,8 @@ void Calculator::Swap()
 	}
 }
 
+#define OVERALLOCATION 2
+
 void Calculator::Mul()
 {
 
@@ -479,10 +495,10 @@ void Calculator::Mul()
 
 		factorSeq  factors;
 
-		int64_t min_sz = stack[stack.size() - 1]->number.size() +
+		u64 min_sz = stack[stack.size() - 1]->number.size() +
 			stack[stack.size() - 2]->number.size();
 
-		int64_t Length = 1;
+		u64 Length = 1;
 		
 		int factorlist[] = { 31,19,17,13,11,7,5,3,2 };
 
@@ -501,11 +517,11 @@ void Calculator::Mul()
 
 		if (pf.Status() > 0) {
 			/* this should be less dynamic, but right now it is OK */
-			Data* real1 = new Data[pf.Status()];
-			Data* imag1 = new Data[pf.Status()];
-			Data* real3 = new Data[pf.Status()];
-			Data* imag3 = new Data[pf.Status()];
-			for (int64_t i = 0; i < pf.Status(); i++) {
+			Data* real1 = new Data[pf.Status()+OVERALLOCATION];
+			Data* imag1 = new Data[pf.Status() + OVERALLOCATION];
+			Data* real3 = new Data[pf.Status() + OVERALLOCATION];
+			Data* imag3 = new Data[pf.Status() + OVERALLOCATION];
+			for (s64 i = 0; i < pf.Status() + OVERALLOCATION; i++) {
 				real1[i] = 0;
 				imag1[i] = 0;
 				real3[i] = 0;
@@ -520,8 +536,8 @@ void Calculator::Mul()
 			pf.forwardFFT(real1, imag1);
 
 			real3[0] = real1[0]* imag1[0];
-			int64_t size = pf.Status();
-			for (int64_t i = 1; i < size; i++)
+			s64 size = pf.Status();
+			for (s64 i = 1; i < size; i++)
 				{
 					Data X01Real = real1[i];
 					Data X01Imag = imag1[i];
@@ -536,7 +552,7 @@ void Calculator::Mul()
 					real3[i] = X3Real;
 					imag3[i] = X3Imag;
 				}
-			for (int64_t i = 0; i < size; i++)
+			for (s64 i = 0; i < size; i++)
 			{
 				real1[i] = real3[i];
 				imag1[i] = imag3[i];
@@ -551,13 +567,13 @@ void Calculator::Mul()
 			for (int i = 0; i < pf.Status(); i+=3)
 			{
 				int t0 = (int)real1[i];
-				int t1 = 1000 * (int)real1[i+1];
-				int t2 = 1000*1000* (int)real1[i+2];
-				temp->number.push_back(t0+t1+t2);
+				int t1 = 1000 * (int)real1[i+1];  // these values are 0 when we reach
+				int t2 = 1000*1000* (int)real1[i+2];// the end of buffer, due to
+				temp->number.push_back(t0+t1+t2);//OVERALLOCATION
 			}
 
-			//while (temp->number.size() && temp->number.back() == 0) temp->number.pop_back();
-                        Normalize(temp);
+			Normalize(temp);
+
 			stack.push_back(temp);
 
 			delete[] real1;
@@ -589,15 +605,15 @@ void Calculator::LoadFFT(BIntPtr A, Data* Buffer)
 		Buffer[FFTIndex] = 1.0;
 }
 
-void Calculator::Carry(int64_t size, Data* Buffer)
+void Calculator::Carry(s64 size, Data* Buffer)
 {
-	int64_t carry = 0;
-	int64_t tmp = 0;
+	s64 carry = 0;
+	s64 tmp = 0;
 
 	/* conversion from 'balanced' Radix 10^3 double  to unbalanced Radix 10^3 double */
-	for (int64_t i = 0; i < size; i++)
+	for (s64 i = 0; i < size; i++)
 	{
-		tmp = (int64_t) std::round(Buffer[i]);
+		tmp = (s64) std::round(Buffer[i]);
 
 		tmp += carry; carry = 0;
 		while (tmp < ( - 1 * (RMOD3 / 2))) { tmp += RMOD3; carry--;	}
@@ -606,9 +622,9 @@ void Calculator::Carry(int64_t size, Data* Buffer)
 	}
 	carry = 0;
 	/* carry we are still in Radix 10^3 double*/
-	for (int64_t i = 0; i < size; i++)
+	for (s64 i = 0; i < size; i++)
 	{
-	    tmp = (int64_t) std::round(Buffer[i]);
+	    tmp = (s64) std::round(Buffer[i]);
 		tmp += carry;  carry = 0;
 		if (tmp < 0) { tmp += RMOD3; carry--; }
 		Buffer[i] = double(tmp) ;
@@ -636,7 +652,7 @@ void Calculator::GCD()
 void Calculator::Div2(BInt &A)
 {
 	int borrow = 0;
-	for (int64_t ix = A.number.size() - 1; ix >= 0; ix--)
+	for (s64 ix = A.number.size() - 1; ix >= 0; ix--)
 	{
 		int t = A.number[ix] + borrow; borrow = 0;
 		if (t & 1)  borrow = RMOD;
@@ -660,7 +676,7 @@ void Calculator::Div1000000000(BInt& A)
 		break;
 
 	default:
-		for (int ix = 0; A.number.size() && (ix < A.number.size() - 1); ix++)
+		for (int ix = 0; A.number.size() && (ix < (A.number.size() - 1)); ix++)
 		{
 			A.number[ix] = A.number[ix + 1];
 		}
@@ -819,6 +835,13 @@ void Calculator::DumpInt(std::string name,  const BInt& arg)
 
 void Calculator::QuotientRemainder()
 {
+	BIntPtr Quotient(new BInt); Quotient->number.clear();
+	Quotient->number.push_back(1);
+	Quotient->sign = 1;
+
+	int counter = 0;
+
+
 	if (stack.size() < 2)
 		std::cout << "QuotientReminder() needs two arguments" << std::endl;
 	else if (IsZero(*stack[stack.size() - 1])) {
@@ -828,7 +851,6 @@ void Calculator::QuotientRemainder()
 	else if ((stack[stack.size() - 1]->number.size() == 1) &&
 		(stack[stack.size() - 2]->number.size() == 1)) {
 		/* small numbers both less than RMOD */
-		BIntPtr Quotient(new BInt); Quotient->number.clear();
 		BIntPtr    Remainder(new BInt); Remainder->number.clear();
 		Quotient->number.push_back(stack[stack.size() - 2]->number[0] / stack[stack.size() - 1]->number[0]);
 		Remainder->number.push_back(stack[stack.size() - 2]->number[0] % stack[stack.size() - 1]->number[0]);
@@ -837,12 +859,13 @@ void Calculator::QuotientRemainder()
 		stack.push_back(Remainder);
 	}
 	else {
+
+		//dumpStack(0);
 		BInt    divisor;  Pop(divisor);
 		BInt    dividend; Pop(dividend);
 		DUMPINT("divisor  ", divisor);
 		DUMPINT("dividend ", dividend);
 
-		BIntPtr Quotient(new BInt); Quotient->number.clear();
 		/* simple first draft !*/
 			/* pseudo code
 			Make an approximation to 1/divisor  : reciprocal
@@ -862,44 +885,47 @@ void Calculator::QuotientRemainder()
 		BIntPtr _divisor(new BInt);  Dup(*_divisor, divisor);
 
 		stack.push_back(_reciprocal);
-		DUMPINT("_reciprocal", *stack.back());
 		stack.push_back(_dividend);
-		DUMPINT("_Dividend", *stack.back());
-		Mul(); 	DUMPINT("_Dividend * _reciprocal (before scaling)", *stack.back());
+		//dumpStack(1);
+		Mul(); 	
+		//dumpStack(2);
 		if (stack.back()->number.size())  for (int i = 0; i < shift;i++)
 			Div1000000000(*stack.back());	
-		DUMPINT("_Dividend * _reciprocal (after scaling) ", *stack.back());	DUMPINT("Qutient (initial value)", *stack.back());
 
-		for (; 1; )
+		while(1)
 		{
-	//		if (stack.size() == 0)
-	//			std::cout << "Something is rotten" << std::endl;
-	//		if (stack.back()->number.size() > 3)
-	//			std::cout << "Something is rotten" << std::endl;
+			/*counter++;
+			std::cout << "counter " << counter << std::endl;*/
+			//if (stack.size() == 0)
+			//	std::cout << "Something is rotten" << std::endl;
+			/*if (stack.back()->number.size() > 3)
+				std::cout << "Something is rotten" << std::endl;*/
 
-			Dup(*Quotient, *stack.back()); 	DUMPINT("Quotient ", *stack.back());
-			stack.push_back(_divisor);		DUMPINT("_divisor ", *stack.back());
-			Mul(); DUMPINT("(Quotient * _divisor", *stack.back());
+			Dup(*Quotient, *stack.back()); 
+
+			stack.push_back(_divisor);
+			//dumpStack(3);
+			Mul(); 
+			//dumpStack(4);
 			ChangeSign();
-			stack.push_back(_dividend); 	DUMPINT("_dividend", *stack.back());
-			Add();	DUMPINT("(_dividend - Quotient * _divisor)", *stack.back());
-			        DUMPINT("divisor                          ", divisor);
-
-			int tsign = stack.back()->sign;
+			stack.push_back(_dividend); 
+			Add();	
 			if (IsAbiggerNummerically(divisor, *stack.back()))
 				break;
 
-			stack.push_back(_reciprocal);	DUMPINT("_reciprocal", *stack.back());
+			stack.push_back(_reciprocal);
+			//dumpStack(5);
 			Mul();
-			for (int i = 0; i < shift;i++) { DUMPINT(" before div ", *stack.back());
-				Div1000000000(*stack.back()); DUMPINT(" after div ", *stack.back());
+			//dumpStack(6);
+			for (int i = 0; i < shift;i++) {
+				Div1000000000(*stack.back()); 
 			}
 			if (IsZero(*stack.back())) {
 				stack.pop_back();
 				Push(1);
 			};
 			stack.push_back(Quotient);
-			Add(); 	DUMPINT("Quotient ", *stack.back());
+			Add();
 		}
 		/* we are done */
 		if (stack.back()->sign == -1)
@@ -918,9 +944,9 @@ void Calculator::QuotientRemainder()
 	}
 }
 
-void Calculator::RussianPeasantMultAux(int sign, int64_t A, const BInt& B)
+void Calculator::RussianPeasantMultAux(int sign, s64 A, const BInt& B)
 {
-	BIntPtr result(new BInt); result->number.clear();
+	BIntPtr result(new BInt); result->number.clear();result->number.push_back(0);
 	BInt    addend;  Dup(addend, B);
 	if(!IsZero(B))
 		while (A) {
@@ -942,14 +968,14 @@ void Calculator::RussianPeasantMult()
 	BInt y;
 	
 	Pop(x); 	Pop(y);
-	int64_t xint = 0;
-	int64_t yint = 0;
+	s64 xint = 0;
+	s64 yint = 0;
 
 	if (x.number.size() < 1+ SMALLNUMBERLIMIT)
-		for (int64_t ix = x.number.size(); ix > 0;ix--)
+		for (s64 ix = x.number.size(); ix > 0;ix--)
 			xint = (xint * RMOD) + x.number[ix - 1];
 	if (y.number.size() < 1+ SMALLNUMBERLIMIT)
-		for (int64_t iy = y.number.size(); iy > 0;iy--)
+		for (s64 iy = y.number.size(); iy > 0;iy--)
 			yint = (yint * RMOD) + y.number[iy - 1];
 
 	if (yint == 0 )  		RussianPeasantMultAux(x.sign * y.sign, xint, y);
