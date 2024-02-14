@@ -16,4 +16,6 @@ Debug builds probably overallocates and put some pattern to detect over-writes, 
 
 Now works on Windows and Linux, both in Debug and Release.
 
+-O3 works on Linux, at least for MillerRabin() test and much faster
+
 
