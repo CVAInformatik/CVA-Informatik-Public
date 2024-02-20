@@ -55,38 +55,46 @@ public:
 	~Calculator();
 	// stack operations
 	void Push(int i);  // push integer on stack
-	void Push(char *c);  // push integer in ascii on stack
 	void Push(const BInt &b);  // push BInt (it will be copied)
 	inline void Pop() { if (stack.size() > 0) stack.pop_back(); };  //remove TOS 
 	inline void Pop(BInt &b) {	if (stack.size() > 0) {	Dup(b, *stack.back());	stack.pop_back();}};  //remove TOS leave a copy in b
 	void Swap();  // interchange the two top-most items on stack
 	inline void Dup() { if (stack.size() > 0) stack.push_back(stack.back()); };  // push a copy of TOS on Stack
 	inline void Clear() { stack.clear(); }; // if you want a fresh stack. The Store is not changed
-	/* Output     */
+	
+	/* ASCII Conversions    */
+	void Push(char* c);  // push integer in ascii on stack
 	std::string* ItoA(); // pop TOS and return  as a string
 	std::string* PrintTOS() { Dup(); return ItoA(); }; // non-destructive print of TOS 
-    /* Arithmetic */
+    
+	/* Arithmetic */
 	void Mul();  // replace two toplevel items with their product
 	void QuotientRemainder();//  replaces the two top elements with Q and R, R < Q
-	                        //  such that S1 = Q * S2 + R
-	//   Short Cuts, things we de a lot...
+	                        //  such that S2 = Q * S1 + R
+							// 
+	void GCD(); // relplace A, B on the stack with [GCD,MA,MB,....] 
+	// such that GCD = A * MA - B * MB
+	void ChangeSign(); // replace TOS with -1 * TOS
+	void Add();  // replace two toplevel items with their sum
+	void Exp(); //  replace   [A,B,....  with [B^A,......
+	void Jacobi(); // replace the two toplevel items with the Legendre/Jacobi symbol 
+	//  [A,M,....   -> [(A/M),....  value is -1,0 or 1....
+	void Div2(unsigned int Power = 1); // replace the TOS with TOS/2^Power
+	void Rand();   // replace the TOS, with a pseudo-Randon number in the closed interval [0...TOS-1]
+							
+							
+	//   Short Cuts, things we do a lot...
+	//   Exp(BInt mod) is probably a bad idea, 
+	//   use CalcUtil.h's  void ModularExponentiation(BInt& Res, const BInt &a, const BInt &exp, const BInt &mod);
+	//   instead
 	inline void Square() { Dup(); Mul(); };
 	inline void Square(BInt Mod) { Dup(); Mul(Mod); };
 	inline void Mod() { QuotientRemainder(); Swap(); Pop(); }
 	inline void Div() { QuotientRemainder(); Pop(); }
 	inline void Mul(BInt Mod) { Mul(); Push(Mod); this->Mod(); }
 	inline void Add(BInt Mod) { Add(); Push(Mod); this->Mod(); }
-	// replace two toplevel items with their product
-
-	void GCD(); // relplace A, B on the stack with [GCD,MA,MB,....] 
-	            // such that GCD = A * MA - B * MB
-	void ChangeSign(); // replace TOS with -1 * TOS
-	void Add();  // replace two toplevel items with their sum
-	void Exp(); //  replace   [A,B,....  with [B^A,......
-	void Jacobi(); // replace the two toplevel items with the Legendre/Jacobi symbol 
-	               //  [A,M,....   -> [(A/M),....  value is -1,0 or 1....
-	void Div2(unsigned int Power = 1); // replace the TOS with TOS/2^Power
-	void Rand();   // replace the TOS, with a pseudo-Randon number in the closed interval [0...TOS-1]
+	
+	// 
 	/* store operations  */
 	/*inline*/ void PopStore(const std::string& loc);// { if (stack.size() > 0) { Store[loc] = stack.back();	stack.pop_back(); } };  //remove TOS and save it at named loc
 	void PushStore(const std::string& loc); // push content of named loc on Stack
@@ -104,11 +112,12 @@ public:
 	bool IsEven();// Does not modify the stack true if TOS is even
 	
 	/* other */
-	inline int  StackSize() { return  (int)stack.size();	}; // how deep is the stack...
+	inline int  StackSize() { return  (int)stack.size(); }; // how deep is the stack...
 	inline int  StoreSize() { return  (int)Store.size(); }; // how many items in the store...
 	
 	// for internal use......
 	void dumpStack(int);
+
 private:
 	std::vector<BIntPtr> stack;
 	std::map<std::string, BIntPtr> Store;
