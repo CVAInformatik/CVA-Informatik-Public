@@ -8,12 +8,12 @@ This General Public License does not permit incorporating your program into prop
 If this is what you want to do, use the GNU Library General Public License instead of this License.
 */
 // for performance measurement
-#ifdef WINDOWS
+#include "PrimeFactorDFT.h"
+#ifdef WIN
 #include "windows.h"
 #include "profileapi.h"
 #endif
 
-#include "PrimeFactorDFT.h"
 #include "SlowFFT.h"
 #include <iostream>
 #include <random>
