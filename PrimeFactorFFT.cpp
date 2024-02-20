@@ -1134,61 +1134,6 @@ bool MillerRabin(BInt& number)
 
 }
 
-void Factoring(char c[])
-{
-
-	PrimeTable pt(LIMIT);
-
-	std::vector<unsigned int>  witnesses;
-
-	witnesses.push_back(2);
-	unsigned int i = 3;
-	while (witnesses.size() < WCOUNT) {
-		if (pt.IsPrime(i)) witnesses.push_back(i);
-		i = i + 2;
-	}
-
-	Calculator cal;
-	cal.Push((char*)c);
-	BInt temp;
-	cal.Pop(temp);
-	if (MillerRabin(temp, witnesses)) {
-		cal.Push(temp);
-		std::cout << "probably prime: " << *cal.ItoA() << std::endl;
-		return;
-	}
-	// OK we think this is composite
-	// let's do some GCD tests
-    cal.Push(temp);
-    cal.Push(1);
-	for (u64 x = 3; x < LIMIT; x = x + 2) {
-		if (!cal.IsLarger() ) {
-			if (pt.IsPrime((unsigned int) x)) {
-				cal.Push((int) x);
-				cal.Mul();
-			}
-		}
-		else
-		{
-			cal.Push(temp);
-			cal.GCD();
-			cal.Push(1);
-			if (cal.IsEqual()) {
-				// nope not a factor
-				cal.Clear();
-                cal.Push(temp);
-				cal.Push((int) x);
-			}
-			else {
-                cal.Pop();
-				std::cout << "factor found " << *cal.ItoA() << std::endl;
-				return;
-			}
-		}
-	}
-
-}
-
 void test19()
 {
     Calculator cal;
@@ -1209,11 +1154,45 @@ void test20()
     BInt P;
     BInt A;
     BInt Res;
+#define P224 1
+#if P224
+    // NIST P-224 
+    cal.Push((char*)"26959946667150639794667015087019630673557916260026308143510066298881");
+    cal.Pop(P);
+    cal.Push(2021);
+    cal.Dup();
+    cal.Dup();
+    cal.Mul();
+    cal.Mul();
+    cal.Push(2021);
+    cal.Push(-3);
+    cal.Mul();
+    cal.Add();
+    cal.Push((char*)"18958286285566608000408668544493926415504680968679321075787234672564");
+    cal.Add();
+    cal.Pop(A);
+    SquareRootModM(Res, A, P);
+    cal.Push(A);
+    std::cout << " A:   " << *cal.ItoA() << std::endl;
+    cal.Push(P);
+    std::cout << " P:   " << *cal.ItoA() << std::endl;
+    cal.Push(Res);
+    cal.Dup();
+    std::cout << " Res: " << *cal.ItoA() << std::endl;
+    cal.Square();
+    cal.Dup();
+    std::cout << " Res * Res  : " << *cal.ItoA() << std::endl;
+    cal.Push(P);
+    cal.Mod();
+    std::cout << " Res * Res  mod P: " << *cal.ItoA() << std::endl;
+    return;
+
+#else 
     cal.Push((char* )"2147483647");
-    //cal.Push((char* )"41");
+    //cal.Push((char* )"43");
     cal.Pop(P);
     cal.Push((char* ) "3497491");
-    //cal.Push((char* ) "5");
+    //cal.Push((char* ) "6");
     cal.Pop(A);
     cal.Push(P);
     cal.Push(A);
@@ -1235,6 +1214,7 @@ void test20()
         std::cout << " Res * Res  mod P: " << *cal.ItoA() << std::endl;
         return;
     }
+#endif
 }
 
 int main()
