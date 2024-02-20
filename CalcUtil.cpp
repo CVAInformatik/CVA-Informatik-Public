@@ -18,15 +18,15 @@ void ModularExponentiation(BInt& Res, const BInt &a, const BInt &exp, const BInt
 			Square.Dup();
 			Square.Pop(temp);
 			Prod.Push(temp);
-			Prod.Mul();
-            Prod.Push(mod);
-			Prod.Mod();
+			Prod.Mul(mod);
+   //         Prod.Push(mod);
+			//Prod.Mod();
         }
 		Iterator.Div2();
         if (!Iterator.IsZero()) {
-            Square.Square();
-            Square.Push(mod);
-            Square.Mod();
+            Square.Square(mod);
+            //Square.Push(mod);
+            //Square.Mod();
         }
 	}
 	Prod.Pop(Res);
@@ -37,21 +37,21 @@ void ModularMultiplication(BInt& ab, const BInt &a, const BInt &b, const BInt &m
 	Calculator cal;
 	cal.Push(a);
 	cal.Push(b);
-	cal.Mul();
-    cal.Push(mod);
-    cal.Mod();
+	cal.Mul(mod);
+    //cal.Push(mod);
+    //cal.Mod();
 	cal.Pop(ab);
 }
 
 void ModularAddition(BInt& aplusb, const BInt &a, const BInt &b, const BInt &mod)
 {
 	Calculator cal;
-	cal.Push(mod);
+//	cal.Push(mod);
 	cal.Push(a);
 	cal.Push(b);
-	cal.Add();
-    cal.Push(mod);
-    cal.Mod();
+	cal.Add(mod);
+    //cal.Push(mod);
+    //cal.Mod();
 	cal.Pop(aplusb);
 }
 
@@ -60,9 +60,9 @@ void ModularSquare(BInt& Res, const BInt &a, const BInt &mod)
 {
     Calculator cal;
     cal.Push(a);
-    cal.Square();
-    cal.Push(mod);
-    cal.Mod();
+    cal.Square(mod);
+    //cal.Push(mod);
+    //cal.Mod();
     cal.Pop(Res);
 }
 
@@ -71,7 +71,7 @@ void ModularSquare(BInt& Res, const BInt &a, const BInt &mod)
 #define WCOUNT 400
 
 /* we check if M is a prime */
-void SquareRootModPrime(BInt& A, BInt& M)
+void SquareRootModPrime(BInt& Res, BInt& A, BInt& M)
 {
     PrimeTable pt(LIMIT);
 
@@ -92,11 +92,11 @@ void SquareRootModPrime(BInt& A, BInt& M)
     }
     /* we assume M is prime now */
 
-    SquareRootModM(A, M);
+    SquareRootModM(Res, A, M);
 }
 
 /* without checking primality of M*/
-void SquareRootModM(BInt& A, BInt& Mod)
+void SquareRootModM(BInt& res, BInt& A, BInt& Mod)
 {
     Calculator cal;
     /* */
@@ -156,12 +156,14 @@ void SquareRootModM(BInt& A, BInt& Mod)
 loop:
     cal.Push(t);
     if (cal.IsZero()) {
-        std::cout << "Root is 0" << std::endl;
+        cal.Pop(res);
+        //std::cout << "Root is 0" << std::endl;
         return;
     }
     if (cal.IsOne()) {
         cal.Push(R);
-        std::cout << "Root is " << *cal.ItoA() << std::endl;
+        cal.Pop(res);
+        //std::cout << "Root is " << *cal.ItoA() << std::endl;
         return;
     }
     int i = 0;

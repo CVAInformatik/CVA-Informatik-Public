@@ -1,6 +1,6 @@
 #pragma once
 /*
-Copyright  Â© 2024 Claus Vind-Andreasen
+Copyright  © 2024 Claus Vind-Andreasen
 
 This program is free software; you can redistribute it and /or modify it under the terms of the GNU General Public License as published by the Free Software Foundation; either version 2 of the License, or (at your option) any later version.
 This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.See the GNU General Public License for more details.
@@ -21,10 +21,10 @@ If this is what you want to do, use the GNU Library General Public License inste
 
 #if 1   // windows
 typedef unsigned __int64  u64;
-typedef __int64  s64;
+typedef __int64  s64; 
 #else   //linux
 typedef  uint64_t  u64;
-typedef  int64_t  s64;
+typedef  int64_t  s64; 
 #endif
 
 typedef  struct _BInt
@@ -61,6 +61,7 @@ public:
 	inline void Pop(BInt &b) {	if (stack.size() > 0) {	Dup(b, *stack.back());	stack.pop_back();}};  //remove TOS leave a copy in b
 	void Swap();  // interchange the two top-most items on stack
 	inline void Dup() { if (stack.size() > 0) stack.push_back(stack.back()); };  // push a copy of TOS on Stack
+	inline void Clear() { stack.clear(); }; // if you want a fresh stack. The Store is not changed
 	/* Output     */
 	std::string* ItoA(); // pop TOS and return  as a string
 	std::string* PrintTOS() { Dup(); return ItoA(); }; // non-destructive print of TOS 
@@ -68,10 +69,14 @@ public:
 	void Mul();  // replace two toplevel items with their product
 	void QuotientRemainder();//  replaces the two top elements with Q and R, R < Q
 	                        //  such that S1 = Q * S2 + R
-	//   
+	//   Short Cuts, things we de a lot...
 	inline void Square() { Dup(); Mul(); };
-	inline void Mod() { QuotientRemainder(); Swap(); Pop();	}
+	inline void Square(BInt Mod) { Dup(); Mul(Mod); };
+	inline void Mod() { QuotientRemainder(); Swap(); Pop(); }
 	inline void Div() { QuotientRemainder(); Pop(); }
+	inline void Mul(BInt Mod) { Mul(); Push(Mod); this->Mod(); }
+	inline void Add(BInt Mod) { Add(); Push(Mod); this->Mod(); }
+	// replace two toplevel items with their product
 
 	void GCD(); // relplace A, B on the stack with [GCD,MA,MB,....] 
 	            // such that GCD = A * MA - B * MB
@@ -82,9 +87,8 @@ public:
 	               //  [A,M,....   -> [(A/M),....  value is -1,0 or 1....
 	void Div2(unsigned int Power = 1); // replace the TOS with TOS/2^Power
 	void Rand();   // replace the TOS, with a pseudo-Randon number in the closed interval [0...TOS-1]
-
 	/* store operations  */
-	inline void PopStore(const std::string& loc) { if (stack.size() > 0) {	Store[loc] = stack.back();	stack.pop_back();}};  //remove TOS and save it at named loc
+	/*inline*/ void PopStore(const std::string& loc);// { if (stack.size() > 0) { Store[loc] = stack.back();	stack.pop_back(); } };  //remove TOS and save it at named loc
 	void PushStore(const std::string& loc); // push content of named loc on Stack
 	void ClearStore(const std::string& loc);// clear named location
 	inline void ClearStore() {	Store.clear();	};// clear all locations
@@ -95,6 +99,8 @@ public:
 	bool IsLarger() ;//Does not modify the stack true if TOS is larger than the number below. 
 	bool IsEqual();//Does not modify the stack true if TOS is equal to number below. 
 	bool IsZero();// Does not modify the stack true if TOS is equal to zero
+	bool IsOne();// Does not modify the stack true if TOS is equal to 1
+	bool IsMinusOne();// Does not modify the stack true if TOS is equal to -1
 	bool IsEven();// Does not modify the stack true if TOS is even
 	
 	/* other */
@@ -112,15 +118,15 @@ private:
 	bool IsEqual(BInt A, BInt B);
 	bool IsALarger(BInt A, BInt B);
 
-	/* SchÃ¶nhage-Strassen Helpers */
+	/* Schönhage-Strassen Helpers */
 	void LoadFFT(BIntPtr A, Data* Buffer);
-	void Carry(__int64 size, Data* Buffer);
+	void Carry(s64 size, Data* Buffer);
 
 	void GCDAux(BIntPtr A, BIntPtr B);
 	void Div2(BInt& A);
 	void Div1000000000(BInt& A);
 	void Mul2(BInt& A);
-	inline void Dup(BInt& D, const BInt& S);
+	void Dup(BInt& D, const BInt& S);
 	inline void  Add(BInt& D, const  BInt& S) {BInt temp;	_Add(temp, D, S);Dup(D, temp);	}	;
 	inline void _Add(BInt& temp, const BInt& D, const BInt& S) { Push(D);Push(S);Add();	Pop(temp); };
 	inline void  Sub(BInt& D,const  BInt& S) { Push(D); Push(S); ChangeSign();	Add();	Pop(D); };
@@ -129,7 +135,7 @@ private:
 	inline void Normalize(BIntPtr b) {	Normalize(*b); };
 	void DumpInt(std::string name, const BInt& arg);
 	void RussianPeasantMult();
-	void RussianPeasantMultAux(int sign, __int64 A, const BInt& B);
+	void RussianPeasantMultAux(int sign, s64 A, const BInt& B);
 	uint  _Rand(uint UpperBound ); // _Rand returns a number in the range 0..UpperBound - 1
 	std::random_device rd;
 	std::uniform_int_distribution<uint>* dist;

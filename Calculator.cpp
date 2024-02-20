@@ -1,5 +1,5 @@
 /*
-Copyright  Â© 2024 Claus Vind-Andreasen
+Copyright  © 2024 Claus Vind-Andreasen
 
 This program is free software; you can redistribute it and /or modify it under the terms of the GNU General Public License as published by the Free Software Foundation; either version 2 of the License, or (at your option) any later version.
 This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.See the GNU General Public License for more details.
@@ -44,12 +44,30 @@ bool Calculator::IsZero(BInt arg)
 	return num == 0;
 }
 
-
 bool Calculator::IsZero()
 {
-	if (stack.size() > 0) 	return IsZero(*stack.back());
+	if (stack.size() > 0) 	 return stack.back()->sign == 1
+		&& stack.back()->number[0] == 0
+		&& stack.back()->number.size() == 1;
 	return false;
 }
+
+bool Calculator::IsOne()
+{
+	if (stack.size() > 0) return stack.back()->sign == 1 
+		 && stack.back()->number[0]==1 
+		 && stack.back()->number.size() == 1;
+	return false;
+}
+
+bool Calculator::IsMinusOne()
+{
+	if (stack.size() > 0) 	return stack.back()->sign == -1
+		&& stack.back()->number[0] == 1
+		&& stack.back()->number.size() == 1;
+	return false;
+}
+
 
 bool Calculator::IsEven()
 {
@@ -836,7 +854,7 @@ void Calculator::DumpInt(std::string name,  const BInt& arg)
 void Calculator::QuotientRemainder()
 {
 	BIntPtr Quotient(new BInt); Quotient->number.clear();
-	Quotient->number.push_back(1);
+	Quotient->number.push_back(0);
 	Quotient->sign = 1;
 
 	int counter = 0;
@@ -1072,6 +1090,8 @@ void Calculator::Normalize(BInt& b)
 		b.sign = 1;
 	}
 }
+
+
 
 void Calculator::dumpStack(int p)
 {

@@ -11,8 +11,8 @@ void ModularAddition(BInt& aplusb, const BInt &a, const BInt &b, const BInt &mod
 
 void ModularSquare(BInt& Res, const BInt &a, const BInt &mod);
 
-void SquareRootModPrime(BInt& A, BInt& M);
+void SquareRootModPrime(BInt& Res, BInt& A, BInt& M);
 
-void SquareRootModM(BInt& A, BInt& M);
+void SquareRootModM(BInt& Res, BInt& A, BInt& M);
 
 bool MillerRabin(BInt& number, const std::vector<unsigned int>& witnesses);

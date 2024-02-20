@@ -18,13 +18,18 @@ If this is what you want to do, use the GNU Library General Public License inste
 #include <random>
 #include "Calculator.h"
 #include "PrimeTable.h"
+#include "CalcUtil.h"
 
 static std::random_device rd;
 static std::mt19937 mt(rd());
 
-void ClearData(__int64 Length, Data* dreal, Data* dimag)
+#define LIMIT 1000000
+#define WCOUNT 300
+
+
+void ClearData(s64 Length, Data* dreal, Data* dimag)
 {
-    for (__int64 i = 0; i < Length; i++) {
+    for (s64 i = 0; i < Length; i++) {
         dreal[i] = 0;
         dimag[i] = 0;
     }
@@ -81,16 +86,16 @@ void test1()
 #define GC 1.0
 #define CG (-1.0)
 
-void InitDNA(__int64 Length, Data *DNAreal, Data *DNAimag)
+void InitDNA(s64 Length, Data *DNAreal, Data *DNAimag)
 {
-    __int64  len = Length / 8;
+    s64  len = Length / 8;
 
-    for (__int64 i = 0; i < Length; i++) { 
+    for (s64 i = 0; i < Length; i++) { 
         DNAreal[i] = 0; 
         DNAimag[i] = 0;
     }
 
-    for (__int64 i = 0; i < len; i++)    {
+    for (s64 i = 0; i < len; i++)    {
         DNAreal[i] = AT;
         DNAreal[i + len] = TA;
         DNAreal[i + len + len] = GC;
@@ -119,10 +124,10 @@ void InitDNA(__int64 Length, Data *DNAreal, Data *DNAimag)
 
 }
 
-uint InitSubDNA(__int64 substringLength, __int64 Length, Data* subDNAreal, Data* subDNAimag, Data *DNAreal)
+uint InitSubDNA(s64 substringLength, s64 Length, Data* subDNAreal, Data* subDNAimag, Data *DNAreal)
 {
 
-    for (__int64 i = 0; i < Length; i++) {
+    for (s64 i = 0; i < Length; i++) {
         subDNAreal[i] = 0;
         subDNAimag[i] = 0;
     }
@@ -136,7 +141,7 @@ uint InitSubDNA(__int64 substringLength, __int64 Length, Data* subDNAreal, Data*
     } while (i1 >= ((4 * ((int)(Length / 8))) - substringLength));
     std::cout << "start:  " << i1 << std::endl;
     /* we swap direction ! */
-    __int64 iy = Length - 1;
+    s64 iy = Length - 1;
     for (uint ix = 0; ix < substringLength; ix++)
         subDNAreal[iy--] = DNAreal[ix + i1];
 
@@ -146,9 +151,9 @@ uint InitSubDNA(__int64 substringLength, __int64 Length, Data* subDNAreal, Data*
 
 
 
-void Multiply(__int64 Length , Data *AxBreal, Data* AxBimag, Data* Areal, Data* Aimag, Data* Breal, Data*  Bimag)
+void Multiply(s64 Length , Data *AxBreal, Data* AxBimag, Data* Areal, Data* Aimag, Data* Breal, Data*  Bimag)
 {
-    for (__int64 i = 0; i < Length; i++) {
+    for (s64 i = 0; i < Length; i++) {
         Data tr, ti; 
 
         tr = Areal[i] * Breal[i] - Aimag[i] * Bimag[i];
@@ -201,8 +206,8 @@ void test2DNA()
 
         Data max = 0;
         Data max2 = 0;
-        __int64 maxIndex = 0;
-        __int64 maxIndex2 = 0;
+        s64 maxIndex = 0;
+        s64 maxIndex2 = 0;
         for (int i = 0; i < pf.Status(); i++) {
             Data val = (Matchreal[i] * Matchreal[i]) + (Matchimag[i] * Matchimag[i]);
             //std::cout << i << " : " << val << std::endl;
@@ -863,8 +868,6 @@ bool MillerRabin(BInt& number, const std::vector<unsigned int>& witnesses);
 
 void test16MillerRabin(char c[]) {
 
-#define LIMIT 1000000
-#define WCOUNT 100
     PrimeTable pt(LIMIT);
 
     std::vector<unsigned int>  witnesses;
@@ -1022,8 +1025,6 @@ void test18()
 
 bool MillerRabin(BInt& number)
 {
-#define LIMIT 1000000
-#define WCOUNT 100
 	PrimeTable pt(LIMIT);
 
 	std::vector<unsigned int>  witnesses;
@@ -1133,108 +1134,108 @@ bool MillerRabin(BInt& number)
 
 }
 
-bool MillerRabin(BInt& number, const std::vector<unsigned int>  &witnesses)
+void Factoring(char c[])
+{
+
+	PrimeTable pt(LIMIT);
+
+	std::vector<unsigned int>  witnesses;
+
+	witnesses.push_back(2);
+	unsigned int i = 3;
+	while (witnesses.size() < WCOUNT) {
+		if (pt.IsPrime(i)) witnesses.push_back(i);
+		i = i + 2;
+	}
+
+	Calculator cal;
+	cal.Push((char*)c);
+	BInt temp;
+	cal.Pop(temp);
+	if (MillerRabin(temp, witnesses)) {
+		cal.Push(temp);
+		std::cout << "probably prime: " << *cal.ItoA() << std::endl;
+		return;
+	}
+	// OK we think this is composite
+	// let's do some GCD tests
+    cal.Push(temp);
+    cal.Push(1);
+	for (u64 x = 3; x < LIMIT; x = x + 2) {
+		if (!cal.IsLarger() ) {
+			if (pt.IsPrime((unsigned int) x)) {
+				cal.Push((int) x);
+				cal.Mul();
+			}
+		}
+		else
+		{
+			cal.Push(temp);
+			cal.GCD();
+			cal.Push(1);
+			if (cal.IsEqual()) {
+				// nope not a factor
+				cal.Clear();
+                cal.Push(temp);
+				cal.Push((int) x);
+			}
+			else {
+                cal.Pop();
+				std::cout << "factor found " << *cal.ItoA() << std::endl;
+				return;
+			}
+		}
+	}
+
+}
+
+void test19()
 {
     Calculator cal;
-    cal.Push(number);
-    if (cal.IsEven()) {
-        std::cout << "argument must be odd " << std::endl;
-        return false;
-    }
-    else {
-        cal.PopStore("m"); //store argument in "m"
-        cal.PushStore("m");
-        cal.Push(-1);
-        cal.Add();
-        cal.PopStore("m-1");
-        cal.PushStore("m-1");
-        int s = 0;
-        while (cal.IsEven()) {
-            cal.Div2();
-            cal.PopStore("d");
-            cal.PushStore("d");
-            s++;
-        }
-        cal.Pop(); //remove d from stack, it is saved in the store
-        // m-1 has now been cleaned of factor 2^s
-        for (size_t ix = 0; ix < witnesses.size(); ix++)
-        {
-            // calculate  x^d mod n 
-            cal.Push(witnesses[ix]); // x on stack
-            cal.PopStore("Multiplier");// x in multiplier
-            bool isZ = false;
-            cal.Push(1);
-            cal.PopStore("x");
-            do {
-                cal.PushStore("d");
-                bool isE = cal.IsEven();
-                cal.Div2();
-                isZ = cal.IsZero();
-                cal.PopStore("d");
-                cal.PushStore("x");
-                if (!isE) {
-                    cal.PushStore("Multiplier");
-                    cal.Mul();
-                    cal.PushStore("m");
-                    cal.Mod();
-                }
-                cal.PopStore("x");
-                if (!isZ) {
-                    cal.PushStore("Multiplier");
-                    cal.Square();
-                    cal.PushStore("m");
-                    cal.Mod();
-                    cal.PopStore("Multiplier"); // 
-                }
-            } while (!isZ);
-            // repeat s times...
-            cal.PushStore("x");
-            cal.PopStore("y");
-            for (int sx = 0; sx < s; sx++) {
-                //cal.dumpStack(4);
-                cal.PushStore("y");
-                cal.Square();
-                cal.PushStore("m");
-                cal.Mod();
-                cal.PopStore("y");
-                cal.PushStore("y");
-                cal.Push(1);
-                if (cal.IsEqual()) {
-                    cal.PushStore("x");
-                    if (!cal.IsEqual()) {
-                        // x == 1
-                        cal.PushStore("m-1");
-                        if (!cal.IsEqual()) {
-                            //bingo
-                            cal.Pop();cal.Pop();cal.Pop();
-                            //std::cout << "Composite" << std::endl;
-                            return false;
-                        }
-                        cal.Pop(); //get rid "m-1" on stack
-                    }
-                    else
-                        cal.Pop(); // get rid of "x" on stack
-                    cal.Pop(); // get rid of "x" on stack
-                }
-                cal.Pop(); // get rid of 1 on stack
-                cal.PopStore("x"); //save x = y
+    cal.Push(859433);
+    cal.Push(3021377);
+    cal.Mul();
+    std::string *s = cal.ItoA();
+    Factoring((char *) s->c_str());
 
-            }
-            cal.PushStore("y");
-            cal.Push(1);
-            if (!cal.IsEqual()) {
-                cal.Pop(); cal.Pop();
-                //std::cout << "Composite" << std::endl;
-                return false;
-            }
-        }
-        return true;
-    }
+    Factoring((char*)"19777122841");
 
 }
 
 
-
+void test20() 
+{
+    Calculator cal;
+    BInt P;
+    BInt A;
+    BInt Res;
+    cal.Push((char* )"2147483647");
+    //cal.Push((char* )"41");
+    cal.Pop(P);
+    cal.Push((char* ) "3497491");
+    //cal.Push((char* ) "5");
+    cal.Pop(A);
+    cal.Push(P);
+    cal.Push(A);
+    cal.Jacobi();
+    if (cal.IsOne()) {
+        SquareRootModPrime(Res, A, P); 
+        cal.Push(A);
+        std::cout << " A:   " << *cal.ItoA() << std::endl;
+        cal.Push(P);
+        std::cout << " P:   " << *cal.ItoA() << std::endl;
+        cal.Push(Res);
+        cal.Dup();
+        std::cout << " Res: " << *cal.ItoA() << std::endl;
+        cal.Square();
+        cal.Dup();
+        std::cout << " Res * Res  : " << *cal.ItoA() << std::endl;
+        cal.Push(P);
+        cal.Mod();
+        std::cout << " Res * Res  mod P: " << *cal.ItoA() << std::endl;
+        return;
+    }
+}
 
 int main()
 {
@@ -1257,7 +1258,10 @@ int main()
     //test16MillerRabin((char*)"2147483647");// Mersenne Prime
     //test16MillerRabin((char *) "1228467");
     //test16MillerRabin((char*)"333228469");
-    test16MillerRabin((char*)"19777122847");
+    //test16MillerRabin((char*)"19777122847");
     //test18();
+    //Factoring((char*)"2147483649");
+    //test19();
+    test20();
     std::cout << "Done !\n";
 }
