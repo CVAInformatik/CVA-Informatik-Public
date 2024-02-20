@@ -42,9 +42,9 @@ void SlowFFT::forwardFFT(Data* real, Data* imag){
 
 	for (int j = 0; j < state; j++)
 	{
-		for (__int64 k = 0; k < state; k++)
+		for (s64 k = 0; k < state; k++)
 		{
-			__int64 index = j*k;
+			s64 index = j*k;
 			index = index % state;
 
 			ResReal[j] += real[k] * CoefReal[index]

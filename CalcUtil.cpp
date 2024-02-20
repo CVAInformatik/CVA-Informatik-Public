@@ -91,7 +91,17 @@ void SquareRootModPrime(BInt& Res, BInt& A, BInt& M)
         return;
     }
     /* we assume M is prime now */
+    if ((M.number[0] % 4) == 3) {
+        BInt mtemp;
+        cal.Push(M);
+        cal.Push(1);
+        cal.Add();
+        cal.Div2(2);
+        cal.Pop(mtemp);
+        ModularExponentiation(Res, A, mtemp, M);
+        return;
 
+    }
     SquareRootModM(Res, A, M);
 }
 
@@ -292,4 +302,60 @@ bool MillerRabin(BInt& number, const std::vector<unsigned int>& witnesses)
         }
         return true;
     }
+}
+
+
+void Factoring(char c[])
+{
+
+    PrimeTable pt(LIMIT);
+
+    std::vector<unsigned int>  witnesses;
+
+    witnesses.push_back(2);
+    unsigned int i = 3;
+    while (witnesses.size() < WCOUNT) {
+        if (pt.IsPrime(i)) witnesses.push_back(i);
+        i = i + 2;
+    }
+
+    Calculator cal;
+    cal.Push((char*)c);
+    BInt temp;
+    cal.Pop(temp);
+    if (MillerRabin(temp, witnesses)) {
+        cal.Push(temp);
+        std::cout << "probably prime: " << *cal.ItoA() << std::endl;
+        return;
+    }
+    // OK we think this is composite
+    // let's do some GCD tests
+    cal.Push(temp);
+    cal.Push(1);
+    for (u64 x = 3; x < LIMIT; x = x + 2) {
+        if (!cal.IsLarger()) {
+            if (pt.IsPrime((unsigned int)x)) {
+                cal.Push((int)x);
+                cal.Mul();
+            }
+        }
+        else
+        {
+            cal.Push(temp);
+            cal.GCD();
+            cal.Push(1);
+            if (cal.IsEqual()) {
+                // nope not a factor
+                cal.Clear();
+                cal.Push(temp);
+                cal.Push((int)x);
+            }
+            else {
+                cal.Pop();
+                std::cout << "factor found " << *cal.ItoA() << std::endl;
+                return;
+            }
+        }
+    }
+
 }

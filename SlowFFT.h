@@ -18,9 +18,9 @@ public:
 	SlowFFT();
 	void SetFactors(factorSeq& _factors);
 	void forwardFFT(Data* real, Data* imag);
-	void InverseFFT(Data* real, Data* îmag);
+	void InverseFFT(Data* real, Data* imag);
 	void ScaledInverseFFT(Data* real, Data* imag);
-	__int64 Status() { return state; };
+	s64 Status() { return state; };
 	~SlowFFT();
 
 private:
@@ -29,5 +29,5 @@ private:
 	Data* CoefReal;
 	Data* CoefImag;
 
-	__int64 state;
+	s64 state;
 };

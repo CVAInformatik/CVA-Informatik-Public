@@ -8,9 +8,10 @@ This General Public License does not permit incorporating your program into prop
 If this is what you want to do, use the GNU Library General Public License instead of this License.
 */
 // for performance measurement
+#ifdef WINDOWS
 #include "windows.h"
 #include "profileapi.h"
-
+#endif
 
 #include "PrimeFactorDFT.h"
 #include "SlowFFT.h"
@@ -364,10 +365,10 @@ void test4()
 
 void test5perf()
 {
-
+#ifdef WIN
     LARGE_INTEGER StartingTime, EndingTime, ElapsedMicroseconds;
     LARGE_INTEGER Frequency;
-
+#endif
 
     PrimeFactorDFT pf;
 
@@ -399,15 +400,18 @@ void test5perf()
             imag[i] = 0.0;
         }
         std::cout << "PFA begin" << std::endl;
-        QueryPerformanceFrequency(&Frequency);
+#ifdef WIN 
+       QueryPerformanceFrequency(&Frequency);
         QueryPerformanceCounter(&StartingTime);
+#endif
         pf.forwardFFT(real, imag);
+#ifdef WIN
         QueryPerformanceCounter(&EndingTime);
         ElapsedMicroseconds.QuadPart = EndingTime.QuadPart - StartingTime.QuadPart;
         ElapsedMicroseconds.QuadPart *= 1000000;
         ElapsedMicroseconds.QuadPart /= Frequency.QuadPart;
         std::cout << "Length " << pf.Status() << "  Elapsed time (microseconds): " << ElapsedMicroseconds.QuadPart << std::endl;
-
+#endif
         std::cout << "PFA end" << std::endl;
 
 

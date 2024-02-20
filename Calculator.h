@@ -19,7 +19,7 @@ If this is what you want to do, use the GNU Library General Public License inste
 #include <map>
 #include "PrimeFactorDFT.h"
 
-#if 1   // windows
+#if 0   // windows
 typedef unsigned __int64  u64;
 typedef __int64  s64; 
 #else   //linux

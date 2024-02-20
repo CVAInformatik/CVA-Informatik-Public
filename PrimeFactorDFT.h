@@ -1,6 +1,6 @@
 #pragma once
 /*
-Copyright  © 2024 Claus Vind-Andreasen
+Copyright  � 2024 Claus Vind-Andreasen
 
 This program is free software; you can redistribute it and /or modify it under the terms of the GNU General Public License as published by the Free Software Foundation; either version 2 of the License, or (at your option) any later version.
 This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.See the GNU General Public License for more details.
@@ -21,10 +21,14 @@ Inspiration originally from
 */
 #include <vector>
 
-#if 1   // windows
+#if 0   // windows
+#define WIN
 typedef unsigned __int64  u64;
 typedef __int64  s64;
 #else   //linux
+#define NOTWIN
+#include <stdlib.h>
+#include <cstdint>
 typedef  uint64_t  u64;
 typedef  int64_t  s64;
 #endif
@@ -41,12 +45,12 @@ public:
 	virtual void Evaluate(Data *read, Data *imag) = 0;
 
 protected:
-	std::vector<__int64> indices;
-	__int64 count;
+	std::vector<s64> indices;
+	s64 count;
 
-	void IncIndices(std::vector<__int64>& ind)
+	void IncIndices(std::vector<s64>& ind)
 	{
-		__int64 tmp = ind[ind.size() - 1];
+		s64 tmp = ind[ind.size() - 1];
 		for (std::size_t i = ind.size() - 1; i > 0; i--)
 		{
 			ind[i] = ind[i - 1] + 1;
@@ -59,7 +63,7 @@ protected:
 
 class DFT2 : protected BasicDFT {
 public:
-	DFT2(int  Rotation, __int64 Count, std::vector<__int64> startIndices)
+	DFT2(int  Rotation, s64 Count, std::vector<s64> startIndices)
 	{
 		count = Count;
 
@@ -78,7 +82,7 @@ private:
 
 class DFT3 : protected BasicDFT {
 public:
-	DFT3(int  Rotation, __int64 Count, std::vector<__int64> startIndices) :
+	DFT3(int  Rotation, s64 Count, std::vector<s64> startIndices) :
 		u{
 		/*real*/
 		-1.500000000000000,
@@ -111,7 +115,6 @@ private:
 	const unsigned int  ip[FFTLENGTH];
 	const unsigned int	op[FFTLENGTH];
 	unsigned int active_op[FFTLENGTH];
-	unsigned int _Rotation;
 
 };
 
@@ -120,7 +123,7 @@ private:
 
 class DFT5 : protected BasicDFT {
 public:
-	DFT5(int  Rotation, __int64 Count, std::vector<__int64> startIndices):
+	DFT5(int  Rotation, s64 Count, std::vector<s64> startIndices):
 		u{ 
 		/* real */
 		-1.250000000000000,
@@ -157,7 +160,6 @@ private:
 	const unsigned int  ip[FFTLENGTH];
 	const unsigned int	op[FFTLENGTH];
 	unsigned int active_op[FFTLENGTH];
-	unsigned int _Rotation;
 
 };
 
@@ -166,7 +168,7 @@ private:
 
 class DFT7 : protected BasicDFT {
 public:
-	DFT7(int  Rotation, __int64 Count, std::vector<__int64> startIndices) :
+	DFT7(int  Rotation, s64 Count, std::vector<s64> startIndices) :
 		u{ 
 		/* real */
 		-1.166666666666667,
@@ -207,14 +209,13 @@ private:
 	const unsigned int  ip[FFTLENGTH];
 	const unsigned int	op[FFTLENGTH];
 	unsigned int active_op[FFTLENGTH];
-	unsigned int _Rotation;
 
 };
 #undef FFTLENGTH
 #define FFTLENGTH 11
 class DFT11 : protected BasicDFT {
 public:
-	DFT11(int  Rotation, __int64 Count, std::vector<__int64> startIndices) :
+	DFT11(int  Rotation, s64 Count, std::vector<s64> startIndices) :
 		op{ 0, 10, 1, 8, 7, 9, 4, 2, 3, 6, 5 },
 		ip{ 0,  1, 9, 4, 3,	5, 10,2, 7,	8, 6 },
 		u{
@@ -271,7 +272,6 @@ private:
 	const unsigned int  ip[FFTLENGTH];
 	const unsigned int	op[FFTLENGTH];
 	unsigned int active_op[FFTLENGTH];
-	unsigned int _Rotation;
 
 };
 
@@ -281,7 +281,7 @@ private:
 class DFT13 : protected BasicDFT {
 
 public:
-	DFT13(int  Rotation, __int64 Count, std::vector<__int64> startIndices) :
+	DFT13(int  Rotation, s64 Count, std::vector<s64> startIndices) :
 		op{ 0,12,1,10,5,3,2,8,9,11,4,7,6 },
 		ip{ 0,1,3,9,5,2,6,12,10,4,8,11,7 },
 		u{
@@ -312,7 +312,6 @@ public:
 	{
 		count = Count;
 		indices = startIndices;
-		_Rotation = std::abs(Rotation);
 
 		int Rotations[FFTLENGTH] = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12 };
 		for (int i = 0; i < FFTLENGTH; i++)
@@ -336,7 +335,6 @@ private:
 	const unsigned int	op[FFTLENGTH];
 
 	unsigned int active_op[FFTLENGTH];
-	unsigned int _Rotation;
 
 };
 #undef FFTLENGTH
@@ -345,7 +343,7 @@ private:
 class DFT17 : protected BasicDFT {
 
 public:
-	DFT17(int  Rotation, __int64 Count, std::vector<__int64> startIndices) :
+	DFT17(int  Rotation, s64 Count, std::vector<s64> startIndices) :
 		u{
 		/* real */
 			-1.062500000000000,
@@ -397,7 +395,6 @@ public:
 	{
 		count = Count;
 		indices = startIndices;
-		_Rotation = std::abs(Rotation);
 
 		int Rotations[FFTLENGTH] = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16 };
 		for (int i = 0; i < FFTLENGTH; i++)
@@ -420,7 +417,6 @@ private:
 	const unsigned int  ip[FFTLENGTH];
 	const unsigned int	op[FFTLENGTH];
 	unsigned int active_op[FFTLENGTH];
-	unsigned int _Rotation;
 
 };
 
@@ -431,7 +427,7 @@ private:
 class DFT19 : protected BasicDFT {
 
 public:
-	DFT19(int  Rotation, __int64 Count, std::vector<__int64> startIndices) :
+	DFT19(int  Rotation, s64 Count, std::vector<s64> startIndices) :
 		u{
 			/* real */
 			-1.055555555555556,
@@ -483,7 +479,6 @@ public:
 	{
 		count = Count;
 		indices = startIndices;
-		_Rotation = std::abs(Rotation);
 
 		int Rotations[FFTLENGTH] = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18 };
 		for (int i = 0; i < FFTLENGTH; i++)
@@ -505,7 +500,6 @@ private:
 	const unsigned int  ip[FFTLENGTH];
 	const unsigned int	op[FFTLENGTH];
 	unsigned int active_op[FFTLENGTH];
-	unsigned int _Rotation;
 
 };
 
@@ -516,7 +510,7 @@ private:
 class DFT31 : protected BasicDFT {
 
 public:
-	DFT31(int  Rotation, __int64 Count, std::vector<__int64> startIndices) :
+	DFT31(int  Rotation, s64 Count, std::vector<s64> startIndices) :
 		op{ 0,30,29,1,28,25,5,18,27,22,24,8,4,6,17,11,26,2,21,19,23,9,7,12,3,20,10,13,16,14,15 },
 		ip{ 0,1,16,8,4,2,25,28,14,7,19,5,18,9,20,10,30,15,23,27,29,6,3,17,24,12,26,13,22,11,21 },
 		u{ 
@@ -614,8 +608,12 @@ public:
 	{
 		count = Count;
 		indices = startIndices;
+#ifdef WIN
 		_Rotation = std::abs(Rotation);
-
+#endif
+#ifdef NOTWIN
+		_Rotation = abs(Rotation);
+#endif
 		int Rotations[FFTLENGTH] = { 0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,
 									 17,18,19,20,21,22,23,24,25,26,27,28,29,30 };
 		for (int i = 0; i < FFTLENGTH; i++)
@@ -670,20 +668,20 @@ public:
 	*  if == -1 invalid/unsupported factors provided.
 	*  if == -2 duplicated factor  provided.
 	*/
-	__int64 Status() { return state; };
+	s64 Status() { return state; };
 
 	void forwardFFT(Data* real, Data *imag);
-	void InverseFFT(Data* real, Data *îmag);
+	void InverseFFT(Data* real, Data *imag);
 	void ScaledInverseFFT(Data* real, Data *imag);
 
 private:
 
-	__int64 ValidateFactors(factorSeq& _factors);
-	__int64 state;
+	s64 ValidateFactors(factorSeq& _factors);
+	s64 state;
 	void InitDFT(factorSeq& _factors, std::vector<BasicDFT*> &_DTFs);
 	void CleanUpDFT(std::vector<BasicDFT*> &_DTFs);
 	void InitRotations();
-	void InitIndices(std::vector<__int64>& indices, int fftlength, __int64 length);
+	void InitIndices(std::vector<s64>& indices, int fftlength, s64 length);
 	factorSeq factors;
 	std::vector<int>  Rotations;
 	std::vector<BasicDFT*> DFTs;

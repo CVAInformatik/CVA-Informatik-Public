@@ -24,7 +24,7 @@ Inspiration originally from
 #include <iostream>
 #include "PrimeFactorDFT.h"
 
-__int64 PrimeFactorDFT::ValidateFactors(factorSeq& _factors)
+s64 PrimeFactorDFT::ValidateFactors(factorSeq& _factors)
 {
     int f2 = 0;
     int f3 = 0;
@@ -62,7 +62,7 @@ __int64 PrimeFactorDFT::ValidateFactors(factorSeq& _factors)
 		|| (f17 > 1) || (f19 > 1) || (f31 > 1))
 		return -2;
 
-	__int64 length = 1;
+	s64 length = 1;
     if (f2 == 1) length *= 2;
     if (f3 == 1) length *= 3;
 	if (f5 == 1) length *= 5;
@@ -79,7 +79,7 @@ void PrimeFactorDFT::InitDFT(factorSeq& _factors, std::vector<BasicDFT*> &_DFTs)
 {
 	for (std::size_t i = 0;i < _factors.size();i++)
 	{
-		std::vector<__int64>  indices;
+		std::vector<s64>  indices;
 		InitIndices(indices, _factors[i], (int) state);
 		BasicDFT* t;
 		switch (_factors[i])
@@ -170,12 +170,12 @@ void PrimeFactorDFT::InitRotations()
 
 }
 
-void PrimeFactorDFT::InitIndices(std::vector<__int64>& indices, int fftlength, __int64 length)
+void PrimeFactorDFT::InitIndices(std::vector<s64>& indices, int fftlength, s64 length)
 {
     indices.clear();
     indices.resize(fftlength);
 
-    __int64 offset = 0;
+    s64 offset = 0;
 
     while (offset < length)
     {
@@ -186,7 +186,7 @@ void PrimeFactorDFT::InitIndices(std::vector<__int64>& indices, int fftlength, _
 
 void DFT2::Evaluate(Data *real, Data *imag)
 {
-    std::vector<__int64> ind = indices;
+    std::vector<s64> ind = indices;
 
     for (int i = 0; i < count; i++)
     {
@@ -221,7 +221,7 @@ void DFT3::Evaluate(Data* real, Data *imag)
     Data real_v[FFTLENGTH];
     Data imag_v[FFTLENGTH];
 
-    std::vector<__int64> ind = indices;
+    std::vector<s64> ind = indices;
 
     for (int i = 0; i < count; i++)
     {
@@ -304,7 +304,7 @@ void DFT5::Evaluate(Data* real, Data* imag)
     Data imag_y[FFTLENGTH];
     Data real_t, imag_t;
 
-    std::vector<__int64> ind = indices;
+    std::vector<s64> ind = indices;
 
 
     for (int i = 0; i < count; i++)
@@ -464,7 +464,7 @@ void DFT7::Evaluate(Data* real, Data* imag)
     Data imag_y[FFTLENGTH];
     Data real_t, imag_t;
 
-    std::vector<__int64> ind = indices;
+    std::vector<s64> ind = indices;
 
 
     for (int i = 0; i < count; i++)
@@ -699,7 +699,7 @@ void DFT7::Evaluate(Data* real, Data* imag)
 
 void DFT11::Evaluate(Data* real, Data* imag)
 {
-    std::vector<__int64> ind = indices;
+    std::vector<s64> ind = indices;
 
 
 	Data real_x[FFTLENGTH];
@@ -1166,7 +1166,7 @@ void DFT11::Evaluate(Data* real, Data* imag)
 
 void DFT13::Evaluate(Data* real, Data* imag)
 {
-    std::vector<__int64> ind = indices;
+    std::vector<s64> ind = indices;
 
     Data real_x[FFTLENGTH];
     Data imag_x[FFTLENGTH];
@@ -1716,7 +1716,7 @@ void DFT13::Evaluate(Data* real, Data* imag)
 
 void DFT17::Evaluate(Data *real, Data *imag)
 {
-    std::vector<__int64> ind = indices;
+    std::vector<s64> ind = indices;
 
     Data real_x[FFTLENGTH];
     Data imag_x[FFTLENGTH];
@@ -2511,7 +2511,7 @@ void DFT17::Evaluate(Data *real, Data *imag)
 
 void DFT19::Evaluate(Data* real, Data* imag)
 {
-    std::vector<__int64> ind = indices;
+    std::vector<s64> ind = indices;
 
 
     Data real_x[FFTLENGTH];
@@ -3404,7 +3404,7 @@ void DFT19::Evaluate(Data* real, Data* imag)
 
 void DFT31::Evaluate(Data  *real, Data *imag)
 {
-    std::vector<__int64> ind = indices;
+    std::vector<s64> ind = indices;
 
 
     Data real_x[FFTLENGTH];
