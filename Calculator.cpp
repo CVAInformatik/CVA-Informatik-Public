@@ -962,7 +962,8 @@ void Calculator::QuotientRemainder()
 	}
 }
 
-#define SIMPLEMULT(S,A,B) RussianPeasantMultAux(S,A,B)
+//#define SIMPLEMULT(S,A,B) RussianPeasantMultAux(S,A,B)
+#define SIMPLEMULT(s,A,B)  SimpleAdditionSubtractionLadder(s,A,B)
 
 void Calculator::RussianPeasantMultAux(int sign, s64 A, const BInt& B)
 {
@@ -981,6 +982,45 @@ void Calculator::RussianPeasantMultAux(int sign, s64 A, const BInt& B)
 	else result->sign = 1; // 0 is positive.
 	stack.push_back(result);
 }
+
+void Calculator::SimpleAdditionSubtractionLadder(int sign, s64 A, const BInt& B)
+{
+	BIntPtr result(new BInt); result->number.clear();result->number.push_back(0);
+	BInt    addend;  Dup(addend, B);
+	s64 Mask = ((A * 3) ^ A) >> 1;
+	s64 At = A >> 1;
+	if (Mask & 1) {
+		if (At & 1) {
+			Dup(*result, B);
+			result->sign = -1;
+		}
+		else {
+			Dup(*result, B);
+			result->sign = 1;
+		}
+	}
+	Mask = Mask >> 1;
+	At = At >> 1;
+	while (Mask) {
+		Mul2(addend);
+		if (Mask & 1) {
+			if (At & 1) { //subtract
+				addend.sign = -1;
+				Add(*result, addend);
+			}
+			else { //add
+				addend.sign = 1;
+				Add(*result, addend);
+			}
+		}
+		Mask = Mask >> 1;
+		At = At >> 1;
+	}
+	Normalize(*result);
+	if (!IsZero(*result)) result->sign = sign;
+	stack.push_back(result);
+}
+
 
 void Calculator::RussianPeasantMult()
 {
