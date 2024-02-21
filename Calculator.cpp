@@ -709,7 +709,7 @@ void Calculator::Mul2(BInt &A)
 	int carry = 0; 
 	for (int ix = 0; ix < A.number.size(); ix++)
 	{
-		int t = (A.number[ix] + carry) << 1;
+		int t = (A.number[ix]  << 1) + carry;
 		carry = 0;
 		if (t >= RMOD) {
 			carry = 1;
@@ -970,7 +970,7 @@ void Calculator::RussianPeasantMultAux(int sign, s64 A, const BInt& B)
 		while (A) {
 			if (A & 1) Add(*result, addend);
 			A = A >> 1;
-			if (A) Add(addend, addend);
+			if (A) Mul2(addend);
 		}
 	else 
 		result->number.push_back(0);
