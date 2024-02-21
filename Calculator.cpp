@@ -962,6 +962,8 @@ void Calculator::QuotientRemainder()
 	}
 }
 
+#define SIMPLEMULT(S,A,B) RussianPeasantMultAux(S,A,B)
+
 void Calculator::RussianPeasantMultAux(int sign, s64 A, const BInt& B)
 {
 	BIntPtr result(new BInt); result->number.clear();result->number.push_back(0);
@@ -996,10 +998,10 @@ void Calculator::RussianPeasantMult()
 		for (s64 iy = y.number.size(); iy > 0;iy--)
 			yint = (yint * RMOD) + y.number[iy - 1];
 
-	if (yint == 0 )  		RussianPeasantMultAux(x.sign * y.sign, xint, y);
-	else if (xint == 0)     RussianPeasantMultAux(x.sign * y.sign, yint, x);
-	else if (xint < yint) 	RussianPeasantMultAux(x.sign*y.sign, xint, y);
-		  else            	RussianPeasantMultAux(x.sign * y.sign, yint, x);
+	if (yint == 0 )  		SIMPLEMULT(x.sign * y.sign, xint, y);
+	else if (xint == 0)             SIMPLEMULT(x.sign * y.sign, yint, x);
+	else if (xint < yint) 	        SIMPLEMULT(x.sign*y.sign, xint, y);
+		  else            	SIMPLEMULT(x.sign * y.sign, yint, x);
 }
 
 void Calculator::Exp()
