@@ -1232,14 +1232,14 @@ void test21()
 
     Calculator cal;
     BInt res;
-    int arg = 100;
+    int arg = 200;
 
 #ifdef PERF
     QueryPerformanceFrequency(&Frequency);
     QueryPerformanceCounter(&StartingTime);
 #endif
 
-    Faculty(res, 100);
+    Faculty(res, arg);
 #ifdef PERF
     QueryPerformanceCounter(&EndingTime);
     ElapsedMicroseconds.QuadPart = EndingTime.QuadPart - StartingTime.QuadPart;
