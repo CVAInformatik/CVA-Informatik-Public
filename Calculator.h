@@ -146,6 +146,7 @@ private:
 	void RussianPeasantMult();
 	void RussianPeasantMultAux(int sign, s64 A, const BInt& B);
 	void SimpleAdditionSubtractionLadder(int sign, s64 A, const BInt& B);
+	void SimpleAdditionSubtractionLadder1(int sign, s64 A, const BInt& B);
 	uint  _Rand(uint UpperBound ); // _Rand returns a number in the range 0..UpperBound - 1
 	std::random_device rd;
 	std::uniform_int_distribution<uint>* dist;

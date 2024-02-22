@@ -9,7 +9,7 @@ If this is what you want to do, use the GNU Library General Public License inste
 */
 // for performance measurement
 #include "PrimeFactorDFT.h"
-#ifdef WIN
+#ifdef PERF
 #include "windows.h"
 #include "profileapi.h"
 #endif
@@ -365,7 +365,7 @@ void test4()
 
 void test5perf()
 {
-#ifdef WIN
+#ifdef PERF
     LARGE_INTEGER StartingTime, EndingTime, ElapsedMicroseconds;
     LARGE_INTEGER Frequency;
 #endif
@@ -400,12 +400,12 @@ void test5perf()
             imag[i] = 0.0;
         }
         std::cout << "PFA begin" << std::endl;
-#ifdef WIN 
+#ifdef PERF
        QueryPerformanceFrequency(&Frequency);
         QueryPerformanceCounter(&StartingTime);
 #endif
         pf.forwardFFT(real, imag);
-#ifdef WIN
+#ifdef PERF
         QueryPerformanceCounter(&EndingTime);
         ElapsedMicroseconds.QuadPart = EndingTime.QuadPart - StartingTime.QuadPart;
         ElapsedMicroseconds.QuadPart *= 1000000;
@@ -1221,6 +1221,36 @@ void test20()
 #endif
 }
 
+
+
+void test21()
+{
+#ifdef PERF
+    LARGE_INTEGER StartingTime, EndingTime, ElapsedMicroseconds;
+    LARGE_INTEGER Frequency;
+#endif
+
+    Calculator cal;
+    BInt res;
+    int arg = 100;
+
+#ifdef PERF
+    QueryPerformanceFrequency(&Frequency);
+    QueryPerformanceCounter(&StartingTime);
+#endif
+
+    Faculty(res, 100);
+#ifdef PERF
+    QueryPerformanceCounter(&EndingTime);
+    ElapsedMicroseconds.QuadPart = EndingTime.QuadPart - StartingTime.QuadPart;
+    ElapsedMicroseconds.QuadPart *= 1000000;
+    ElapsedMicroseconds.QuadPart /= Frequency.QuadPart;
+    std::cout <<  "Elapsed time(microseconds) : " << ElapsedMicroseconds.QuadPart << std::endl;
+#endif
+    cal.Push(res);
+    std::cout << " " << arg << "! : " << *cal.ItoA() << std::endl;
+}
+
 int main()
 {
     //test1();
@@ -1246,6 +1276,7 @@ int main()
     //test18();
     //Factoring((char*)"2147483649");
     //test19();
-    test20();
+    //test20();
+    test21();
     std::cout << "Done !\n";
 }

@@ -962,24 +962,34 @@ void Calculator::QuotientRemainder()
 	}
 }
 
-//#define SIMPLEMULT(S,A,B) RussianPeasantMultAux(S,A,B)
-#define SIMPLEMULT(s,A,B)  SimpleAdditionSubtractionLadder(s,A,B)
+//#define SIMPLEMULT
+//#define SIMPLEMULT(s,A,B)  RussianPeasantMultAux(s,A,B)
+//#define SIMPLEMULT(s,A,B)  SimpleAdditionSubtractionLadder(s,A,B)
+#define SIMPLEMULT(s,A,B)  SimpleAdditionSubtractionLadder1(s,A,B)
 
 void Calculator::RussianPeasantMultAux(int sign, s64 A, const BInt& B)
 {
 	BIntPtr result(new BInt); result->number.clear();result->number.push_back(0);
 	BInt    addend;  Dup(addend, B);
-	if(!IsZero(B))
-		while (A) {
-			if (A & 1) Add(*result, addend);
-			A = A >> 1;
-			if (A) Mul2(addend);
-		}
-	else 
-		result->number.push_back(0);
+
+#if TESTMUL == 1
+	std::cout << "SimpleAdditionSubraction: " << std::endl;
+	std::cout << "Argument A:  " << A << std::endl;
+	DumpInt("Argument B:  ", B);
+#endif
+
+
+	while (A) {
+		if (A & 1) Add(*result, addend);
+		A = A >> 1;
+		if (A) Mul2(addend);
+	}
 	Normalize(*result);
 	if (!IsZero(*result)) result->sign = sign;
 	else result->sign = 1; // 0 is positive.
+#if TESTMUL == 1
+	DumpInt("result:  ", *result);
+#endif
 	stack.push_back(result);
 }
 
@@ -989,6 +999,13 @@ void Calculator::SimpleAdditionSubtractionLadder(int sign, s64 A, const BInt& B)
 	BInt    addend;  Dup(addend, B);
 	s64 Mask = ((A * 3) ^ A) >> 1;
 	s64 At = A >> 1;
+#if TESTMUL == 1
+
+	std::cout << "SimpleAdditionSubraction: " << std::endl;
+	std::cout << "Argument A:  "<< A << std::endl;
+	DumpInt("Argument B:  ", B);
+#endif
+	//first time is a simple copy and maybe a change of sign
 	if (Mask & 1) {
 		if (At & 1) {
 			Dup(*result, B);
@@ -1001,6 +1018,8 @@ void Calculator::SimpleAdditionSubtractionLadder(int sign, s64 A, const BInt& B)
 	}
 	Mask = Mask >> 1;
 	At = At >> 1;
+	// else we do add/subracts each time  Mask lsb is 1
+	// Adds if At  lsb is 0 Subs if is 1 
 	while (Mask) {
 		Mul2(addend);
 		if (Mask & 1) {
@@ -1016,8 +1035,64 @@ void Calculator::SimpleAdditionSubtractionLadder(int sign, s64 A, const BInt& B)
 		Mask = Mask >> 1;
 		At = At >> 1;
 	}
+
 	Normalize(*result);
 	if (!IsZero(*result)) result->sign = sign;
+#if TESTMUL == 1
+	DumpInt("result:  ", *result);
+#endif
+	stack.push_back(result);
+}
+
+void Calculator::SimpleAdditionSubtractionLadder1(int sign, s64 A, const BInt& B)
+{
+	/* this is taken from Crandall& Pomerance 
+	*   "Prime Numbers,  A Computational Perspective" 2nd edition
+	*/
+	BIntPtr result(new BInt); result->number.clear();result->number.push_back(0);
+	BInt    addend;  Dup(addend, B); addend.sign = 1;
+
+#if TESTMUL == 1
+	std::cout << "SimpleAdditionSubraction: " << std::endl;
+	std::cout << "Argument A:  " << A << std::endl;
+	DumpInt("Argument B:  ", B);
+#endif
+
+	s64 A3 = A * 3;
+	s64 A1 = A;
+	s64 A3EXORA1 = A3 ^ A1;
+	s64 Mask = (A3>>1 | A3>> 2); // ! 
+	Mask |= Mask >> 2;
+	Mask |= Mask >> 4;
+	Mask |= Mask >> 8;
+	Mask |= Mask >> 16;
+	Mask |= Mask >> 32;
+	Mask++; // is now one '1' positioned the first non-zero bit of A3
+
+
+	// The Mask Bit is now on first non-zero bit in A3
+	Dup(*result, addend);
+	Mask = Mask >> 1;
+	while (Mask > 1) {
+		Mul2(*result);
+		if (Mask &( A3EXORA1)) {
+			if (Mask & A3) {
+				addend.sign = 1;
+				Add(*result, addend);
+			}
+			else{
+				addend.sign = -1;
+				Add(*result, addend);
+			}
+		}
+		Mask = Mask >> 1;
+	}
+	Normalize(*result);
+	if (!IsZero(*result)) result->sign = sign;
+
+#if TESTMUL == 1
+	DumpInt("result:  ", *result);
+#endif
 	stack.push_back(result);
 }
 

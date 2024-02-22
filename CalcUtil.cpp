@@ -359,3 +359,18 @@ void Factoring(char c[])
     }
 
 }
+
+
+
+void Faculty(BInt& res, int  a)
+{
+    Calculator cal;
+
+    cal.Push(1);
+    for (int i = 2; i < 100; i++)
+    {
+        cal.Push(i);
+        cal.Mul();
+    }
+    cal.Pop(res);
+}

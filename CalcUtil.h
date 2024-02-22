@@ -18,3 +18,6 @@ void SquareRootModM(BInt& Res, BInt& A, BInt& M);
 bool MillerRabin(BInt& number, const std::vector<unsigned int>& witnesses);
 
 void Factoring(char c[]);
+
+
+void Faculty(BInt& res, int  a);
