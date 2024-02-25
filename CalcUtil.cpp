@@ -394,11 +394,59 @@ void Convert10E9to2E30(BInt2E30& dest, BInt& src)
         temp1.number.push_back(temp.number[0]);
     } while (!cal.IsZero());
 
-    if ((temp1.number.size() % 2) == 1)
-        temp1.number.push_back(0);
+    if ((temp1.number.size() % 2) == 1) temp1.number.push_back(0);
 
     for (int i = 0; i < temp1.number.size(); i = i + 2)
         dest.number.push_back( temp1.number[i] | (temp1.number[i + 1] << 15));
 
 }
 
+void Convert2E30to10E9(BInt& dest, BInt2E30&  src)
+{
+    Calculator cal;
+    BInt  temp;
+    BInt  temp1;
+
+    /* first convert to radix 2E15, so we can use the calculator */
+    for (int i = 0; i < src.number.size(); i = i++)
+    {
+        temp.number.push_back(src.number[i] & 0x7FFF);
+        temp.number.push_back((src.number[i]>>15) & 0x7FFF);
+    }
+    cal.Push(2);
+    cal.Push(15);
+    cal.Exp();
+    cal.PopStore("_2E15");
+
+    cal.Push(0);
+    for (int i = temp.number.size() - 1; i >= 0; i--)
+    {
+        cal.PushStore("_2E15");
+        cal.Mul();
+        cal.Push(temp.number[i]);
+        cal.Add();
+    }
+    cal.Pop(dest);
+}
+
+void MersenneBInt2E20(BInt2E30& dest, uint N)
+{
+    uint Nt = N;
+    dest.number.clear();
+    dest.sign = 1;
+
+    while (Nt > 30) {
+        dest.number.push_back(0x3FFFFFFF);
+        Nt = Nt - 30;
+    }
+
+    if (Nt > 0)
+    {
+        int it = 1;
+        Nt--;
+
+        while (Nt-- > 0)  it = it | it << 1;
+        dest.number.push_back(it);
+    }
+
+}

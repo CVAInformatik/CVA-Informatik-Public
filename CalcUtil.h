@@ -31,3 +31,7 @@ typedef  struct _BInt2E30
 
 
 void Convert10E9to2E30(BInt2E30& dest, BInt& src);
+
+void Convert2E30to10E9(BInt& dest, BInt2E30& src);
+
+void MersenneBInt2E20(BInt2E30& dest, uint N);

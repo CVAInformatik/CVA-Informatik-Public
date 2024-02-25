@@ -1261,13 +1261,30 @@ void test22()
     BInt2E30 temp2;
 
     cal.Push(2);
-    cal.Push(100);
+    cal.Push(1000);
     cal.Exp();
     cal.Push(-1);
     cal.Add();
+    cal.Dup();
+    std::cout << "temp " << *cal.ItoA() << std::endl;
     cal.Pop(temp);
     Convert10E9to2E30(temp2, temp);
     for (int i = 0; i < temp2.number.size(); i++) printf(" %3d :  %08X \n", i, temp2.number[i]);
+
+    Convert2E30to10E9(temp, temp2);
+    cal.Push(temp);
+    std::cout << "temp " << *cal.ItoA() << std::endl << std::endl;
+
+    MersenneBInt2E20(temp2, 86243);
+    Convert2E30to10E9(temp, temp2);
+    cal.Push(temp);
+    std::cout << "temp " << *cal.ItoA() << std::endl  << std::endl;
+
+    MersenneBInt2E20(temp2, 209960);
+    Convert2E30to10E9(temp, temp2);
+    cal.Push(temp);
+    std::cout << "temp " << *cal.ItoA() << std::endl << std::endl;
+
 }
 
 

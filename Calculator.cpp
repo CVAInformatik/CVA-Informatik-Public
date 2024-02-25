@@ -1,5 +1,5 @@
 /*
-Copyright  Â© 2024 Claus Vind-Andreasen
+Copyright  © 2024 Claus Vind-Andreasen
 
 This program is free software; you can redistribute it and /or modify it under the terms of the GNU General Public License as published by the Free Software Foundation; either version 2 of the License, or (at your option) any later version.
 This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.See the GNU General Public License for more details.
@@ -961,7 +961,6 @@ void Calculator::QuotientRemainder()
 	}
 }
 
-//#define SIMPLEMULT
 //#define SIMPLEMULT(s,A,B)  RussianPeasantMultAux(s,A,B)
 //#define SIMPLEMULT(s,A,B)  SimpleAdditionSubtractionLadder(s,A,B)
 #define SIMPLEMULT(s,A,B)  SimpleAdditionSubtractionLadder1(s,A,B)
@@ -1095,27 +1094,41 @@ void Calculator::SimpleAdditionSubtractionLadder1(int sign, s64 A, const BInt& B
 	stack.push_back(result);
 }
 
-
 void Calculator::RussianPeasantMult()
 {
 	BInt x; 
 	BInt y;
 	
 	Pop(x); 	Pop(y);
-	s64 xint = 0;
-	s64 yint = 0;
+#if TESTMUL == 1
+	std::cout << "RussianPeasantMult() " << std::endl;
+	DumpInt(" x: ", x);
+	DumpInt(" y: ", y);
+#endif
+	if (IsZero(x) || IsZero(y))
+	{
+		BIntPtr result(new BInt());
+		result->number.push_back(0);
+		result->sign = 1;
+		stack.push_back(result);
 
-	if (x.number.size() < 1+ SMALLNUMBERLIMIT)
-		for (s64 ix = x.number.size(); ix > 0;ix--)
-			xint = (xint * RMOD) + x.number[ix - 1];
-	if (y.number.size() < 1+ SMALLNUMBERLIMIT)
-		for (s64 iy = y.number.size(); iy > 0;iy--)
-			yint = (yint * RMOD) + y.number[iy - 1];
+	}
+	else {
+		s64 xint = 0;
+		s64 yint = 0;
 
-	if (yint == 0 )  		SIMPLEMULT(x.sign * y.sign, xint, y);
-	else if (xint == 0)             SIMPLEMULT(x.sign * y.sign, yint, x);
-	else if (xint < yint) 	        SIMPLEMULT(x.sign*y.sign, xint, y);
-		  else            	SIMPLEMULT(x.sign * y.sign, yint, x);
+		if (x.number.size() < 1 + SMALLNUMBERLIMIT)
+			for (s64 ix = x.number.size(); ix > 0;ix--)
+				xint = (xint * RMOD) + x.number[ix - 1];
+		if (y.number.size() < 1 + SMALLNUMBERLIMIT)
+			for (s64 iy = y.number.size(); iy > 0;iy--)
+				yint = (yint * RMOD) + y.number[iy - 1];
+
+		if (yint == 0)  		SIMPLEMULT(x.sign * y.sign, xint, y);
+		else if (xint == 0)     SIMPLEMULT(x.sign * y.sign, yint, x);
+		else if (xint < yint) 	SIMPLEMULT(x.sign * y.sign, xint, y);
+		else                	SIMPLEMULT(x.sign * y.sign, yint, x);
+	}
 }
 
 void Calculator::Exp()
@@ -1124,7 +1137,7 @@ void Calculator::Exp()
 		std::cout << "Exp() needs two arguments" << std::endl;
 	else {
 		BInt     Exponent;  Pop(Exponent);
-		BIntPtr  Argument(new BInt); Pop(*Argument);
+		BIntPtr  Argument(new BInt); Pop(*Argument); 
 		BIntPtr  Result(new BInt); Result->number.push_back(1);
 		stack.push_back(Result);
 		while (!IsZero(Exponent)) {
