@@ -8,12 +8,16 @@ This General Public License does not permit incorporating your program into prop
 If this is what you want to do, use the GNU Library General Public License instead of this License.
 */
 // for performance measurement
+
 #include "PrimeFactorDFT.h"
+//#define PERF
+
 #ifdef PERF
 #include "windows.h"
 #include "profileapi.h"
 #endif
 
+#include "PrimeFactorDFT.h"
 #include "SlowFFT.h"
 #include <iostream>
 #include <random>
@@ -401,7 +405,7 @@ void test5perf()
         }
         std::cout << "PFA begin" << std::endl;
 #ifdef PERF
-       QueryPerformanceFrequency(&Frequency);
+        QueryPerformanceFrequency(&Frequency);
         QueryPerformanceCounter(&StartingTime);
 #endif
         pf.forwardFFT(real, imag);
@@ -1222,7 +1226,6 @@ void test20()
 }
 
 
-
 void test21()
 {
 #ifdef PERF
@@ -1232,7 +1235,7 @@ void test21()
 
     Calculator cal;
     BInt res;
-    int arg = 200;
+    int arg = 400;
 
 #ifdef PERF
     QueryPerformanceFrequency(&Frequency);
@@ -1250,6 +1253,23 @@ void test21()
     cal.Push(res);
     std::cout << " " << arg << "! : " << *cal.ItoA() << std::endl;
 }
+
+void test22()
+{
+    Calculator cal;
+    BInt temp;
+    BInt2E30 temp2;
+
+    cal.Push(2);
+    cal.Push(100);
+    cal.Exp();
+    cal.Push(-1);
+    cal.Add();
+    cal.Pop(temp);
+    Convert10E9to2E30(temp2, temp);
+    for (int i = 0; i < temp2.number.size(); i++) printf(" %3d :  %08X \n", i, temp2.number[i]);
+}
+
 
 int main()
 {
@@ -1277,6 +1297,8 @@ int main()
     //Factoring((char*)"2147483649");
     //test19();
     //test20();
-    test21();
+    //test21();
+
+    test22();
     std::cout << "Done !\n";
 }
