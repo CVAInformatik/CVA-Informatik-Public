@@ -4,23 +4,14 @@
 #include "Calculator2E30.h"
 
 
-//#ifdef CAL10
 void ModularExponentiation(BINT& Res, const BINT &a, const BINT &exp, const BINT &mod)
 {
 	CALCULATOR Square;
     CALCULATOR Prod;
     CALCULATOR Iterator;
     BINT temp;
-//#else
-//void ModularExponentiation(BInt2E30 & Res, const BInt2E30 & a, const BInt2E30 & exp, const BInt2E30 & mod)
-//{
-//    Calculator2E30 Square;
-//    Calculator2E30 Prod;
-//    Calculator2E30 Iterator;
-//    BInt2E30 temp;
-//#endif
 
-	Square.Push(a);
+  	Square.Push(a);
     Prod.Push(1);
     Iterator.Push(exp);
 
@@ -30,14 +21,10 @@ void ModularExponentiation(BINT& Res, const BINT &a, const BINT &exp, const BINT
 			Square.Pop(temp);
 			Prod.Push(temp);
 			Prod.Mul(mod);
-   //         Prod.Push(mod);
-			//Prod.Mod();
-        }
+    }
 		Iterator.Div2();
         if (!Iterator.IsZero()) {
             Square.Square(mod);
-            //Square.Push(mod);
-            //Square.Mod();
         }
 	}
 	Prod.Pop(Res);
@@ -49,20 +36,15 @@ void ModularMultiplication(BINT& ab, const BINT& a, const BINT& b, const BINT& m
 	cal.Push(a);
 	cal.Push(b);
 	cal.Mul(mod);
-    //cal.Push(mod);
-    //cal.Mod();
 	cal.Pop(ab);
 }
 void ModularAddition(BINT& aplusb, const BINT& a, const BINT& b, const BINT& mod)
 {    
     CALCULATOR cal;
 
-    //	cal.Push(mod);
 	cal.Push(a);
 	cal.Push(b);
 	cal.Add(mod);
-    //cal.Push(mod);
-    //cal.Mod();
 	cal.Pop(aplusb);
 }
 
@@ -73,8 +55,6 @@ void ModularSquare(BINT& Res, const BINT& a, const BINT& mod)
 
     cal.Push(a);
     cal.Square(mod);
-    //cal.Push(mod);
-    //cal.Mod();
     cal.Pop(Res);
 }
 
@@ -184,23 +164,21 @@ loop:
     cal.Push(t);
     if (cal.IsZero()) {
         cal.Pop(Res);
-        //std::cout << "Root is 0" << std::endl;
         return;
     }
     if (cal.IsOne()) {
         cal.Push(R);
         cal.Pop(Res);
-        //std::cout << "Root is " << *cal.ItoA() << std::endl;
         return;
     }
     int i = 0;
-    cal.Push(t); 
-    cal.Pop(t1);// t1 = t 
     do {
+        cal.Pop(t1);// t1 = t 
         i++;
         ModularSquare(t1, t1, P);
         cal.Push(t1);
     } while (!cal.IsOne());
+    cal.Pop();
     cal.Push(2);
     cal.Push(M);
     cal.Push(i+1);
@@ -281,15 +259,10 @@ bool MillerRabin(BINT& number, const std::vector<unsigned int>& witnesses)
             for (int sx = 0; sx < s; sx++) {
                 cal.PushStore("y");
                 cal.Square();
-                //cal.Dup();
-                //std::cout << "y*y " << *cal.ItoA() << std::endl;
                 cal.PushStore("m");
-                //cal.Dup();
-                //std::cout <<"m "<< * cal.ItoA() << std::endl;
                 cal.Mod();
                 cal.PopStore("y");
                 cal.PushStore("y");
-                //cal.Push(1);
                 if (cal.IsOne()) {
                     cal.PushStore("x");
                     if (!cal.IsOne()) {
@@ -298,7 +271,6 @@ bool MillerRabin(BINT& number, const std::vector<unsigned int>& witnesses)
                         if (!cal.IsEqual()) {
                             //bingo
                             cal.Pop();cal.Pop();//cal.Pop();
-                            //std::cout << "Composite" << std::endl;
                             return false;
                         }
                         cal.Pop(); //get rid "m-1" on stack
@@ -311,7 +283,6 @@ bool MillerRabin(BINT& number, const std::vector<unsigned int>& witnesses)
                 cal.PopStore("x"); //save x = y
             }
             cal.PushStore("y");
-            //cal.Push(1);
             if (!cal.IsOne()) {
                 cal.Pop(); cal.Pop();
                 //std::cout << "Composite" << std::endl;
