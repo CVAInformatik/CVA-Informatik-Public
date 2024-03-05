@@ -1,17 +1,28 @@
 
-
+#include "CalculatorType.h"
 #include "CalcUtil.h"
+#include "Calculator2E30.h"
 
-void ModularExponentiation(BInt& Res, const BInt &a, const BInt &exp, const BInt &mod)
+
+//#ifdef CAL10
+void ModularExponentiation(BINT& Res, const BINT &a, const BINT &exp, const BINT &mod)
 {
-	Calculator Square;
-	Calculator Prod;
-	Calculator Iterator;
+	CALCULATOR Square;
+    CALCULATOR Prod;
+    CALCULATOR Iterator;
+    BINT temp;
+//#else
+//void ModularExponentiation(BInt2E30 & Res, const BInt2E30 & a, const BInt2E30 & exp, const BInt2E30 & mod)
+//{
+//    Calculator2E30 Square;
+//    Calculator2E30 Prod;
+//    Calculator2E30 Iterator;
+//    BInt2E30 temp;
+//#endif
 
 	Square.Push(a);
     Prod.Push(1);
     Iterator.Push(exp);
-    BInt temp;
 
 	while (!Iterator.IsZero()) {
 		if (!Iterator.IsEven()) {
@@ -32,9 +43,9 @@ void ModularExponentiation(BInt& Res, const BInt &a, const BInt &exp, const BInt
 	Prod.Pop(Res);
 }
 
-void ModularMultiplication(BInt& ab, const BInt &a, const BInt &b, const BInt &mod)
+void ModularMultiplication(BINT& ab, const BINT& a, const BINT& b, const BINT& mod)
 {
-	Calculator cal;
+	CALCULATOR cal;
 	cal.Push(a);
 	cal.Push(b);
 	cal.Mul(mod);
@@ -42,11 +53,11 @@ void ModularMultiplication(BInt& ab, const BInt &a, const BInt &b, const BInt &m
     //cal.Mod();
 	cal.Pop(ab);
 }
+void ModularAddition(BINT& aplusb, const BINT& a, const BINT& b, const BINT& mod)
+{    
+    CALCULATOR cal;
 
-void ModularAddition(BInt& aplusb, const BInt &a, const BInt &b, const BInt &mod)
-{
-	Calculator cal;
-//	cal.Push(mod);
+    //	cal.Push(mod);
 	cal.Push(a);
 	cal.Push(b);
 	cal.Add(mod);
@@ -56,9 +67,10 @@ void ModularAddition(BInt& aplusb, const BInt &a, const BInt &b, const BInt &mod
 }
 
 
-void ModularSquare(BInt& Res, const BInt &a, const BInt &mod)
+void ModularSquare(BINT& Res, const BINT& a, const BINT& mod)
 {
-    Calculator cal;
+    CALCULATOR cal;
+
     cal.Push(a);
     cal.Square(mod);
     //cal.Push(mod);
@@ -71,8 +83,11 @@ void ModularSquare(BInt& Res, const BInt &a, const BInt &mod)
 #define WCOUNT 400
 
 /* we check if M is a prime */
-void SquareRootModPrime(BInt& Res, BInt& A, BInt& M)
+void SquareRootModPrime(BINT& Res, BINT& A, BINT& M)
 {
+    CALCULATOR cal;
+    BINT mtemp;
+
     PrimeTable pt(LIMIT);
 
     std::vector<unsigned int>  witnesses;
@@ -84,7 +99,6 @@ void SquareRootModPrime(BInt& Res, BInt& A, BInt& M)
         i1 = i1 + 2;
     }
 
-    Calculator cal;
     if (!MillerRabin(M, witnesses)) {
         cal.Push(M);
         std::cout << "probably composite: " << *cal.ItoA() << std::endl;
@@ -92,7 +106,6 @@ void SquareRootModPrime(BInt& Res, BInt& A, BInt& M)
     }
     /* we assume M is prime now */
     if ((M.number[0] % 4) == 3) {
-        BInt mtemp;
         cal.Push(M);
         cal.Push(1);
         cal.Add();
@@ -106,13 +119,14 @@ void SquareRootModPrime(BInt& Res, BInt& A, BInt& M)
 }
 
 /* without checking primality of M*/
-void SquareRootModM(BInt& res, BInt& A, BInt& Mod)
+void SquareRootModM(BINT& Res, BINT& A, BINT& Mod)
 {
-    Calculator cal;
+    CALCULATOR cal;
     /* */
-    BInt Q;
-    BInt M;
-    BInt P;
+    BINT Q;
+    BINT M;
+    BINT P;
+
     cal.Push(Mod);
     cal.Push(A);
     cal.Jacobi();
@@ -142,9 +156,13 @@ void SquareRootModM(BInt& res, BInt& A, BInt& Mod)
     cal.Pop(Q);
     cal.Push(S);
     cal.Pop(M);
-    BInt z;
-    BInt c;
-    BInt t;
+    BINT z;
+    BINT c;
+    BINT t;
+    BINT temp, R;
+    BINT t1;
+    BINT b, temp1;
+
     do {
         cal.Push(P);
         cal.Dup();
@@ -160,25 +178,23 @@ void SquareRootModM(BInt& res, BInt& A, BInt& Mod)
     cal.Push(1);
     cal.Add();
     cal.Div2();
-    BInt temp,R;
     cal.Pop(temp);
     ModularExponentiation(R, A, temp, P);
 loop:
     cal.Push(t);
     if (cal.IsZero()) {
-        cal.Pop(res);
+        cal.Pop(Res);
         //std::cout << "Root is 0" << std::endl;
         return;
     }
     if (cal.IsOne()) {
         cal.Push(R);
-        cal.Pop(res);
+        cal.Pop(Res);
         //std::cout << "Root is " << *cal.ItoA() << std::endl;
         return;
     }
     int i = 0;
     cal.Push(t); 
-    BInt t1;
     cal.Pop(t1);// t1 = t 
     do {
         i++;
@@ -191,7 +207,6 @@ loop:
     cal.ChangeSign();
     cal.Add();
     cal.Exp();
-    BInt b, temp1;
     cal.Pop(temp1);
     ModularExponentiation(b, c, temp1, P);
     cal.Push(i);
@@ -203,16 +218,17 @@ loop:
 
 }
 
-
-bool MillerRabin(BInt& number, const std::vector<unsigned int>& witnesses)
+bool MillerRabin(BINT& number, const std::vector<unsigned int>& witnesses)
 {
-    Calculator cal;
+    CALCULATOR cal;
+
     cal.Push(number);
     if (cal.IsEven()) {
         std::cout << "argument must be odd " << std::endl;
         return false;
     }
     else {
+
         cal.PopStore("m"); //store argument in "m"
         cal.PushStore("m");
         cal.Push(-1);
@@ -220,6 +236,7 @@ bool MillerRabin(BInt& number, const std::vector<unsigned int>& witnesses)
         cal.PopStore("m-1");
         cal.PushStore("m-1");
         int s = 0;
+
         while (cal.IsEven()) {
             cal.Div2();
             cal.PopStore("d");
@@ -231,7 +248,6 @@ bool MillerRabin(BInt& number, const std::vector<unsigned int>& witnesses)
         for (size_t ix = 0; ix < witnesses.size(); ix++)
         {
             // calculate  x^d mod n 
-            //std::cout << "Witness: " << witnesses[ix] << std::endl;
             cal.Push(witnesses[ix]); // x on stack
             cal.PopStore("Multiplier");// x in multiplier
             bool isZ = false;
@@ -263,22 +279,25 @@ bool MillerRabin(BInt& number, const std::vector<unsigned int>& witnesses)
             cal.PushStore("x");
             cal.PopStore("y");
             for (int sx = 0; sx < s; sx++) {
-                //cal.dumpStack(4);
                 cal.PushStore("y");
                 cal.Square();
+                //cal.Dup();
+                //std::cout << "y*y " << *cal.ItoA() << std::endl;
                 cal.PushStore("m");
+                //cal.Dup();
+                //std::cout <<"m "<< * cal.ItoA() << std::endl;
                 cal.Mod();
                 cal.PopStore("y");
                 cal.PushStore("y");
-                cal.Push(1);
-                if (cal.IsEqual()) {
+                //cal.Push(1);
+                if (cal.IsOne()) {
                     cal.PushStore("x");
-                    if (!cal.IsEqual()) {
+                    if (!cal.IsOne()) {
                         // x == 1
                         cal.PushStore("m-1");
                         if (!cal.IsEqual()) {
                             //bingo
-                            cal.Pop();cal.Pop();cal.Pop();
+                            cal.Pop();cal.Pop();//cal.Pop();
                             //std::cout << "Composite" << std::endl;
                             return false;
                         }
@@ -290,11 +309,10 @@ bool MillerRabin(BInt& number, const std::vector<unsigned int>& witnesses)
                 }
                 cal.Pop(); // get rid of 1 on stack
                 cal.PopStore("x"); //save x = y
-
             }
             cal.PushStore("y");
-            cal.Push(1);
-            if (!cal.IsEqual()) {
+            //cal.Push(1);
+            if (!cal.IsOne()) {
                 cal.Pop(); cal.Pop();
                 //std::cout << "Composite" << std::endl;
                 return false;
@@ -304,9 +322,10 @@ bool MillerRabin(BInt& number, const std::vector<unsigned int>& witnesses)
     }
 }
 
-
 void Factoring(char c[])
 {
+    CALCULATOR cal;
+    BINT temp;
 
     PrimeTable pt(LIMIT);
 
@@ -319,9 +338,7 @@ void Factoring(char c[])
         i = i + 2;
     }
 
-    Calculator cal;
     cal.Push((char*)c);
-    BInt temp;
     cal.Pop(temp);
     if (MillerRabin(temp, witnesses)) {
         cal.Push(temp);
@@ -360,10 +377,9 @@ void Factoring(char c[])
 
 }
 
-
-void Faculty(BInt& res, int  a)
+void Faculty(BINT& res, int  a)
 {
-    Calculator cal;
+    CALCULATOR cal;
 
     cal.Push(1);
     for (int i = 2; i <= a; i++)
@@ -373,7 +389,6 @@ void Faculty(BInt& res, int  a)
     }
     cal.Pop(res);
 }
-
 
 void Convert10E9to2E30(BInt2E30& dest, BInt& src)
 {
@@ -399,6 +414,7 @@ void Convert10E9to2E30(BInt2E30& dest, BInt& src)
     for (int i = 0; i < temp1.number.size(); i = i + 2)
         dest.number.push_back( temp1.number[i] | (temp1.number[i + 1] << 15));
 
+    dest.sign = src.sign;
 }
 
 void Convert2E30to10E9(BInt& dest, BInt2E30&  src)
@@ -419,14 +435,15 @@ void Convert2E30to10E9(BInt& dest, BInt2E30&  src)
     cal.PopStore("_2E15");
 
     cal.Push(0);
-    for (int i = temp.number.size() - 1; i >= 0; i--)
+    for (u64 i = temp.number.size() ; i > 0; i--)
     {
         cal.PushStore("_2E15");
         cal.Mul();
-        cal.Push(temp.number[i]);
+        cal.Push(temp.number[i-1]);
         cal.Add();
     }
     cal.Pop(dest);
+    dest.sign = src.sign;
 }
 
 void MersenneBInt2E20(BInt2E30& dest, uint N)

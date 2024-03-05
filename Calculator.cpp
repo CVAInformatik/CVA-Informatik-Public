@@ -98,12 +98,7 @@ bool Calculator::IsEqual() {
 		return false;
 	}
 	else
-	{
-		if ((stack[sz - 1]->sign != stack[sz - 2]->sign)) return false;
-		if ((stack[sz - 1]->number.size() != stack[sz - 2]->number.size())) return false;
-		for(size_t i = 0 ; i < stack[sz - 1]->number.size(); i++)
-			if ((stack[sz - 1]->number[i] != stack[sz - 2]->number[i])) return false;
-	}
+		return IsEqual(*stack[sz - 1], *stack[sz - 2]);
 	return true;
 }
 
@@ -189,6 +184,7 @@ void Calculator::Rand(){  // we are not aiming for perfection here.....
 		temp->number.push_back(i);
 
 		Normalize(temp);
+
 		stack.pop_back();
 		stack.push_back(temp);
 	}
@@ -359,111 +355,107 @@ the code below is adapted from
 
 		The Handbook of Applied Cryptograpy by A.Menezes, P van Oorschot and S.Vanstone (CRC Press 1996).
 */
-void Calculator::Add()
+
+void Calculator::AddAux(int Asign, BInt& A, int Bsign, const BInt& B)
+{
+	/* setup  */
+	u64 min_sz = std::min(A.number.size(), B.number.size());
+
+	if (Asign == Bsign)
 	{
-		if (stack.size() < 2)
-			std::cout << "Add() needs two arguments" << std::endl;
-		else {
-			/* setup  */
-			u64 min_sz = std::min(stack[stack.size() - 1]->number.size(), stack[stack.size() - 2]->number.size());
-			BIntPtr temp(new BInt); temp->number.clear();
+		/* they have identical signs */
+		/* this is done in twp steps
+		*    1)  Add the digits without carry
+		*    2)  do ' + carry mod RMOD'
+		*/
 
-			if (stack[stack.size() - 1]->sign == stack[stack.size() - 2]->sign)
-			{
-				/* they have identical signs */
-				/* this is done in three steps
-				*    1)  copy TOS to temp
-				*    2)  Add the digits without carry
-				*    3)  do ' + carry mod RMOD'
-				*/
+		/* step 1: add the other number, it may be longer or shorter than temp */
+		for (u64 i = 0; i < min_sz; i++)  A.number[i] = A.number[i] + B.number[i];
 
-				temp->sign = stack[stack.size() - 1]->sign;
-				/* step 1 */
-				for (uint i = 0; i < stack.back()->number.size(); i++) temp->number.push_back(  stack.back()->number[i]);
+		for (u64 i = min_sz; i < B.number.size(); i++)	A.number.push_back(B.number[i]);
 
-				stack.pop_back();
-
-				/* step 2: add the other number, it may be longer or shorter than temp */
-				for (u64 i = 0; i < min_sz; i++)  temp->number[i] = temp->number[i] + stack.back()->number[i];
-
-				if (stack.back()->number.size() > temp->number.size()) 
-					for (u64 i = min_sz; i < stack.back()->number.size(); i++)
-						temp->number.push_back(stack.back()->number[i]);
-
-				stack.pop_back(); // done with all inputs
-
-				/* step 3 */
-				int carry = 0;
-				for (u64 i = 0; i < temp->number.size(); i++)
-				{
-					temp->number[i] += carry;
-					if (temp->number[i] >= RMOD) {
-						temp->number[i] -= RMOD;
-						carry = 1;
-					}
-					else
-						carry = 0;
-				}
-				if (carry) temp->number.push_back(carry);
-
+		/* step 3 */
+		int carry = 0;
+		for (u64 i = 0; i < A.number.size(); i++)
+		{
+			A.number[i] += carry;
+			if (A.number[i] >= RMOD ) {
+				A.number[i] -= RMOD;
+				carry = 1;
 			}
 			else
-			{
-				/* they have different signs */
-				/* this is done in four steps
-				*    1)  Multiply the digits in the negative number with -1
-				*    2)  Add the digits without carry
-				*    3)  do ' + carry mod RMOD'
-				*    if carry out from the MSD is -1
-				*    4)   (optional)  subtract from 0 and adjust sign of result.
-				*/
-				if (stack.back()->sign == 1) Swap();  // we put the negative number on top
-
-				/* step 1: negate digits in the negative number, which is TOS,  and save them in temp  */
-				for (uint i = 0; i < stack.back()->number.size(); i++) temp->number.push_back( - stack.back()->number[i]);
-
-				stack.pop_back(); // remove the negative number from top
-
-				/* step 2: add the other number, which is positive, it may be longer or shorter than temp */
-				for (u64 i = 0; i < min_sz; i++)  temp->number[i] = temp->number[i] + stack.back()->number[i];
-
-				if (stack.back()->number.size() > temp->number.size())  /* is the positive number bigger than temp */
-					for (u64 i = min_sz; i < stack.back()->number.size(); i++)	temp->number.push_back(stack.back()->number[i]);
-
-				stack.pop_back(); // done with all inputs
-
-				/* step 3: now adjust carry/borrow and mod */
-				int c = 0;
-				for (int i = 0; i < temp->number.size(); i++)
-				{
-					temp->number[i] += c;
-					if (temp->number[i] < 0) {
-						c = -1;
-						temp->number[i] += RMOD;
-					}
-					else
-						c = 0;
-				}
-
-				/* step 4: final correction if c is set */
-				if (c != 0) {
-					temp->sign = -1;
-					int c1 = 0;
-					for (int i = 0; i < temp->number.size(); i++)
-					{
-						temp->number[i] = 0 - temp->number[i] + c1;
-						if (temp->number[i] < 0) {
-							c1 = -1;
-							temp->number[i] += RMOD;
-						}
-						else
-							c1 = 0;
-					}
-				}
-			}
-			Normalize(temp);
-			stack.push_back(temp);
+				carry = 0;
 		}
+		if (carry) A.number.push_back(carry);
+	}
+	else
+	{
+		/* they have different signs */
+		/* this is done in four steps
+		*    1)  Multiply the digits in the negative number with -1
+		*    2)  Add the digits without carry
+		*    3)  do ' + carry mod RMOD'
+		*    if carry out from the MSD is -1
+		*    4)   (optional)  subtract from 0 and adjust sign of result.
+		*/
+
+		/* step 1: negate digits in the negative number, which is TOS,  and save them in temp  */
+		if (Asign == -1) {
+			A.sign = 1;
+			for (u64 i = 0; i < A.number.size(); i++) A.number[i] = -1 * A.number[i];
+			for (u64 i = 0; i < min_sz; i++)  A.number[i] = A.number[i] + B.number[i];
+			for (u64 i = min_sz; i < B.number.size(); i++)	A.number.push_back(B.number[i]);
+		}
+		else { /* Bsign == -1 */
+			for (u64 i = 0; i < min_sz; i++)  A.number[i] = A.number[i] - B.number[i];
+			for (u64 i = min_sz; i < B.number.size(); i++)	A.number.push_back(-B.number[i]);
+		}
+
+		/* step 3: now adjust carry/borrow and mod */
+		int c = 0;
+		for (int i = 0; i < A.number.size(); i++)
+		{
+			A.number[i] += c;
+			if (A.number[i] < 0) {
+				c = -1;
+				A.number[i] += RMOD;
+			}
+			else
+				c = 0;
+		}
+
+		/* step 4: final correction if c is set */
+		if (c != 0) {
+			A.sign = -1;
+			int c1 = 0;
+			for (int i = 0; i < A.number.size(); i++)
+			{
+				A.number[i] = 0 - A.number[i] + c1;
+				if (A.number[i] < 0) {
+					c1 = -1;
+					A.number[i] += RMOD;
+				}
+				else
+					c1 = 0;
+			}
+		}
+	}
+}
+
+void Calculator::Add()
+	{
+	if (stack.size() < 2)
+		std::cout << "Add() needs two arguments" << std::endl;
+	else {
+		BIntPtr temp(new BInt);
+
+		Dup(*temp, *stack.back());
+		stack.pop_back();
+		AddAux(temp->sign, *temp, stack.back()->sign, *stack.back());
+		stack.pop_back();
+		Normalize(temp);
+		stack.push_back(temp);
+	}
 }
 
 void Calculator::PushStore(const std::string& loc) 
@@ -735,9 +727,11 @@ void Calculator::GCDAux(BIntPtr X, BIntPtr Y)
 	BInt y;  		Dup(y, *Y);
 
 	/* remove common 1000 factors */
+	u64 min_sz = std::min(x.number.size(), y.number.size());
 	int i = 0;
-	if (x.number.size() > 1 && y.number.size() > 1)
-		while ((x.number[i] | y.number[i]) == 0)  i++; /* counter #1000 */
+	for (u64 i = 0; i < min_sz; i++)
+		if ((x.number[i] | y.number[i]) == 0)  i++; /* counter #1000 */
+		else break;
 
 	/* then remove them and update g */
 	for (int i2 = 0; i2 < i; i2++)  /* then remove them and update g */
@@ -858,7 +852,6 @@ void Calculator::QuotientRemainder()
 
 	int counter = 0;
 
-
 	if (stack.size() < 2)
 		std::cout << "QuotientReminder() needs two arguments" << std::endl;
 	else if (IsZero(*stack[stack.size() - 1])) {
@@ -895,7 +888,7 @@ void Calculator::QuotientRemainder()
 					Quotient = Quotient + reminder *reciprocal ;
 			while  true
        	*/
-		int     reciprocal = RMOD / divisor.number.back();
+		int     reciprocal = (RMOD) /(2+ divisor.number.back());
 		BIntPtr _reciprocal(new BInt); _reciprocal->number.clear(); _reciprocal->number.push_back(reciprocal);
 		int     shift = (int)divisor.number.size();
 		BIntPtr _dividend(new BInt); Dup(*_dividend, dividend);
@@ -903,37 +896,24 @@ void Calculator::QuotientRemainder()
 
 		stack.push_back(_reciprocal);
 		stack.push_back(_dividend);
-		//dumpStack(1);
 		Mul(); 	
-		//dumpStack(2);
 		if (stack.back()->number.size())  for (int i = 0; i < shift;i++)
 			Div1000000000(*stack.back());	
 
 		while(1)
 		{
-			/*counter++;
-			std::cout << "counter " << counter << std::endl;*/
-			//if (stack.size() == 0)
-			//	std::cout << "Something is rotten" << std::endl;
-			/*if (stack.back()->number.size() > 3)
-				std::cout << "Something is rotten" << std::endl;*/
 
 			Dup(*Quotient, *stack.back()); 
-
 			stack.push_back(_divisor);
-			//dumpStack(3);
 			Mul(); 
-			//dumpStack(4);
 			ChangeSign();
 			stack.push_back(_dividend); 
-			Add();	
+			Add();
 			if (IsAbiggerNummerically(divisor, *stack.back()))
 				break;
 
 			stack.push_back(_reciprocal);
-			//dumpStack(5);
 			Mul();
-			//dumpStack(6);
 			for (int i = 0; i < shift;i++) {
 				Div1000000000(*stack.back()); 
 			}
@@ -961,144 +941,55 @@ void Calculator::QuotientRemainder()
 	}
 }
 
-//#define SIMPLEMULT(s,A,B)  RussianPeasantMultAux(s,A,B)
-//#define SIMPLEMULT(s,A,B)  SimpleAdditionSubtractionLadder(s,A,B)
-#define SIMPLEMULT(s,A,B)  SimpleAdditionSubtractionLadder1(s,A,B)
+#define SIMPLEMULT(s,A,sb, B)  SimpleAdditionSubtractionLadder1(s,A,sb, B)
 
-void Calculator::RussianPeasantMultAux(int sign, s64 A, const BInt& B)
+
+void Calculator::SimpleAdditionSubtractionLadder1(int sign, s64 A, int BSign, const BInt& B)
 {
-	BIntPtr result(new BInt); result->number.clear();result->number.push_back(0);
-	BInt    addend;  Dup(addend, B);
+	{
+		/* this is taken from Crandall& Pomerance
+		*   "Prime Numbers,  A Computational Perspective" 2nd edition
+		*/
+		BIntPtr result(new BInt); result->number.clear();result->number.push_back(0);
 
-#if TESTMUL == 1
-	std::cout << "SimpleAdditionSubraction: " << std::endl;
-	std::cout << "Argument A:  " << A << std::endl;
-	DumpInt("Argument B:  ", B);
-#endif
+		s64 A3 = A * 3;
+		s64 A1 = A;
+		s64 A3EXORA1 = A3 ^ A1;
+		s64 Mask = (A3 >> 1 | A3 >> 2); // ! 
+		Mask |= Mask >> 2;
+		Mask |= Mask >> 4;
+		Mask |= Mask >> 8;
+		Mask |= Mask >> 16;
+		Mask |= Mask >> 32;
+		Mask++; // is now one '1' positioned the first non-zero bit of A3
 
-
-	while (A) {
-		if (A & 1) Add(*result, addend);
-		A = A >> 1;
-		if (A) Mul2(addend);
-	}
-	Normalize(*result);
-	if (!IsZero(*result)) result->sign = sign;
-	else result->sign = 1; // 0 is positive.
-#if TESTMUL == 1
-	DumpInt("result:  ", *result);
-#endif
-	stack.push_back(result);
-}
-
-void Calculator::SimpleAdditionSubtractionLadder(int sign, s64 A, const BInt& B)
-{
-	BIntPtr result(new BInt); result->number.clear();result->number.push_back(0);
-	BInt    addend;  Dup(addend, B);
-	s64 Mask = ((A * 3) ^ A) >> 1;
-	s64 At = A >> 1;
-#if TESTMUL == 1
-
-	std::cout << "SimpleAdditionSubraction: " << std::endl;
-	std::cout << "Argument A:  "<< A << std::endl;
-	DumpInt("Argument B:  ", B);
-#endif
-	//first time is a simple copy and maybe a change of sign
-	if (Mask & 1) {
-		if (At & 1) {
-			Dup(*result, B);
-			result->sign = -1;
-		}
-		else {
-			Dup(*result, B);
-			result->sign = 1;
-		}
-	}
-	Mask = Mask >> 1;
-	At = At >> 1;
-	// else we do add/subracts each time  Mask lsb is 1
-	// Adds if At  lsb is 0 Subs if is 1 
-	while (Mask) {
-		Mul2(addend);
-		if (Mask & 1) {
-			if (At & 1) { //subtract
-				addend.sign = -1;
-				Add(*result, addend);
-			}
-			else { //add
-				addend.sign = 1;
-				Add(*result, addend);
-			}
-		}
+		Dup(*result, B);
 		Mask = Mask >> 1;
-		At = At >> 1;
-	}
-
-	Normalize(*result);
-	if (!IsZero(*result)) result->sign = sign;
-#if TESTMUL == 1
-	DumpInt("result:  ", *result);
-#endif
-	stack.push_back(result);
-}
-
-void Calculator::SimpleAdditionSubtractionLadder1(int sign, s64 A, const BInt& B)
-{
-	/* this is taken from Crandall& Pomerance 
-	*   "Prime Numbers,  A Computational Perspective" 2nd edition
-	*/
-	BIntPtr result(new BInt); result->number.clear();result->number.push_back(0);
-	BInt    addend;  Dup(addend, B); addend.sign = 1;
-
-#if TESTMUL == 1
-	std::cout << "SimpleAdditionSubraction: " << std::endl;
-	std::cout << "Argument A:  " << A << std::endl;
-	DumpInt("Argument B:  ", B);
-#endif
-
-	s64 A3 = A * 3;
-	s64 A1 = A;
-	s64 A3EXORA1 = A3 ^ A1;
-	s64 Mask = (A3>>1 | A3>> 2); // ! 
-	Mask |= Mask >> 2;
-	Mask |= Mask >> 4;
-	Mask |= Mask >> 8;
-	Mask |= Mask >> 16;
-	Mask |= Mask >> 32;
-	Mask++; // is now one '1' positioned the first non-zero bit of A3
-
-
-	// The Mask Bit is now on first non-zero bit in A3
-	Dup(*result, addend);
-	Mask = Mask >> 1;
-	while (Mask > 1) {
-		Mul2(*result);
-		if (Mask &( A3EXORA1)) {
-			if (Mask & A3) {
-				addend.sign = 1;
-				Add(*result, addend);
+		while (Mask > 1) {
+			Mul2(*result);
+			if (Mask & (A3EXORA1)) {
+				if (Mask & A3) {
+					AddAux(1, *result, 1, B);
+				}
+				else {
+					AddAux(1, *result, -1, B);
+				}
 			}
-			else{
-				addend.sign = -1;
-				Add(*result, addend);
-			}
+			Mask = Mask >> 1;
 		}
-		Mask = Mask >> 1;
-	}
-	Normalize(*result);
-	if (!IsZero(*result)) result->sign = sign;
+		Normalize(*result);
+		if (!IsZero(*result)) result->sign = sign;
 
-#if TESTMUL == 1
-	DumpInt("result:  ", *result);
-#endif
-	stack.push_back(result);
+		stack.push_back(result);
+	}
+
 }
 
-void Calculator::RussianPeasantMult()
-{
-	BInt x; 
+
+void Calculator::RussianPeasantMult() {
+	BInt x;
 	BInt y;
-	
+
 	Pop(x); 	Pop(y);
 #if TESTMUL == 1
 	std::cout << "RussianPeasantMult() " << std::endl;
@@ -1124,10 +1015,10 @@ void Calculator::RussianPeasantMult()
 			for (s64 iy = y.number.size(); iy > 0;iy--)
 				yint = (yint * RMOD) + y.number[iy - 1];
 
-		if (yint == 0)  		SIMPLEMULT(x.sign * y.sign, xint, y);
-		else if (xint == 0)     SIMPLEMULT(x.sign * y.sign, yint, x);
-		else if (xint < yint) 	SIMPLEMULT(x.sign * y.sign, xint, y);
-		else                	SIMPLEMULT(x.sign * y.sign, yint, x);
+		if (yint == 0)  		SIMPLEMULT(x.sign * y.sign, xint, y.sign, y);
+		else if (xint == 0)     SIMPLEMULT(y.sign * x.sign, yint, x.sign, x);
+		else if (xint < yint) 	SIMPLEMULT(x.sign * y.sign, xint, y.sign, y);
+		else                	SIMPLEMULT(y.sign * x.sign, yint, x.sign, x);
 	}
 }
 
@@ -1162,50 +1053,58 @@ void Calculator::Jacobi()
 	if (stack.size() < 2)
 		std::cout << "Jacoby/Legendre  needs two arguments" << std::endl;
 	else {
+		BIntPtr Res(new BInt); Res->number.clear();
 		BIntPtr A(new BInt); Pop(*A);
 		BIntPtr M(new BInt); Pop(*M);
-		BIntPtr Res(new BInt); Res->number.clear();
-
-		stack.push_back(A);
-		stack.push_back(M);
-		Mod();
-		if (IsZero(*stack.back())) {  //A|M 
-			stack.pop_back();
-			Res->number.push_back(0); Res->sign = 1;
+		if ((M->number.size() == 1) && (M->number[0] == 1))
+		{
+			Res->number.clear(); Res->number.push_back(1); Res->sign = 1;
 			stack.push_back(Res);
+			return;
 		}
 		else {
-			Pop(*A); //reminder of A mod M
-			Res->number.push_back(1); Res->sign = 1;
-			while (!IsZero(*A)) {
-				while ((A->number[0] & 1) == 0)
-				{
-					Div2(*A);
-					switch (M->number[0] & 0x7)
-					{
-					case 3: case 5:   Res->sign = -1 * Res->sign;
-						break;
-					default:
-						break;
-					}
-				}
-				BInt temp;
-				Dup(temp, *A);
-				Dup(*A, *M);
-				Dup(*M, temp);
-				if ((3 == (A->number[0] & 0x3)) && (3 ==( M->number[0] & 0x3)))
-					Res->sign = -1 * Res->sign;
-				stack.push_back(A);
-				stack.push_back(M);
-				Mod();
-				Pop(*A);
-			}
-			if ((M->number.size() == 1) && (M->number[0] == 1))  stack.push_back(Res);
-			else
-			{
-				Res->number.clear(); Res->number.push_back(0); Res->sign = 1;
+
+			stack.push_back(A);
+			stack.push_back(M);
+			Mod();
+			if (IsZero(*stack.back())) {  //A|M 
+				stack.pop_back();
+				Res->number.push_back(0); Res->sign = 1;
 				stack.push_back(Res);
-				return;
+			}
+			else {
+				Pop(*A); //reminder of A mod M
+				Res->number.push_back(1); Res->sign = 1;
+				while (!IsZero(*A)) {
+					while ((A->number[0] & 1) == 0)
+					{
+						Div2(*A);
+						switch (M->number[0] & 0x7)
+						{
+						case 3: case 5:   Res->sign = -1 * Res->sign;
+							break;
+						default:
+							break;
+						}
+					}
+					BInt temp;
+					Dup(temp, *A);
+					Dup(*A, *M);
+					Dup(*M, temp);
+					if ((3 == (A->number[0] & 0x3)) && (3 == (M->number[0] & 0x3)))
+						Res->sign = -1 * Res->sign;
+					stack.push_back(A);
+					stack.push_back(M);
+					Mod();
+					Pop(*A);
+				}
+				if ((M->number.size() == 1) && (M->number[0] == 1))  stack.push_back(Res);
+				else
+				{
+					Res->number.clear(); Res->number.push_back(0); Res->sign = 1;
+					stack.push_back(Res);
+					return;
+				}
 			}
 		}
 	}

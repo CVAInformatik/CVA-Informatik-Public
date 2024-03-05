@@ -1,34 +1,39 @@
 #pragma once
 
+#include "CalculatorType.h"
 #include "PrimeTable.h"
 #include "Calculator.h"
+#include "Calculator2E30.h"
 
-void ModularExponentiation(BInt& Res, const BInt &a, const BInt &exp, const BInt &mod);
 
-void ModularMultiplication(BInt& ab, const BInt &a, const BInt &b, const BInt &mod);
+#ifdef CAL10
+#define CALCULATOR Calculator 
+#define BINT BInt
+#else
+#define CALCULATOR Calculator2E30 
+#define BINT BInt2E30
+#endif
 
-void ModularAddition(BInt& aplusb, const BInt &a, const BInt &b, const BInt &mod);
 
-void ModularSquare(BInt& Res, const BInt &a, const BInt &mod);
+void ModularExponentiation(BINT& Res, const BINT& a, const BINT& exp, const BINT& mod);
 
-void SquareRootModPrime(BInt& Res, BInt& A, BInt& M);
+void ModularMultiplication(BINT& ab, const BINT& a, const BINT& b, const BINT& mod);
 
-void SquareRootModM(BInt& Res, BInt& A, BInt& M);
+void ModularAddition(BINT& aplusb, const BINT& a, const BINT& b, const BINT& mod);
 
-bool MillerRabin(BInt& number, const std::vector<unsigned int>& witnesses);
+void ModularSquare(BINT& Res, const BINT& a, const BINT& mod);
+
+void SquareRootModM(BINT& Res, BINT& A, BINT& M);
+
+void SquareRootModPrime(BINT& Res, BINT& A, BINT& M);
+
+bool MillerRabin(BINT& number, const std::vector<unsigned int>& witnesses);
 
 void Factoring(char c[]);
 
-void Faculty(BInt& res, int  a);
+void Faculty(BINT& res, int  a);
 
 /* for experiments */
-typedef  struct _BInt2E30
-{
-	int sign;
-	std::vector<int>  number;
-	_BInt2E30() { sign = 1; number.clear(); };
-} BInt2E30;
-
 
 void Convert10E9to2E30(BInt2E30& dest, BInt& src);
 

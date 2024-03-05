@@ -9,8 +9,8 @@ If this is what you want to do, use the GNU Library General Public License inste
 */
 // for performance measurement
 
+#include "CalculatorType.h"
 #include "PrimeFactorDFT.h"
-//#define PERF
 
 #ifdef PERF
 #include "windows.h"
@@ -24,12 +24,23 @@ If this is what you want to do, use the GNU Library General Public License inste
 #include "Calculator.h"
 #include "PrimeTable.h"
 #include "CalcUtil.h"
+#include "Calculator2E30.h"
+
+/*
+#ifdef CAL10
+#define CALCULATOR Calculator 
+#define BINT BInt
+#else
+#define CALCULATOR Calculator2E30 
+#define BINT BInt2E30
+#endif
+*/
 
 static std::random_device rd;
 static std::mt19937 mt(rd());
 
 #define LIMIT 1000000
-#define WCOUNT 300
+#define WCOUNT 100
 
 
 void ClearData(s64 Length, Data* dreal, Data* dimag)
@@ -433,15 +444,19 @@ void test5perf()
 
 }
 
+#define PRINT( c) do { std::cout << *c.ItoA() << std::endl;} while (0)
+
+
 void test6Calc()
 {
-    Calculator c;
+    CALCULATOR c;
     //char num[] = "261261924691694619461924691649164";
     char num[] = "90000000";
     std::cout << num << std::endl;
     c.Push(num);
     c.Dup();
-    std::cout << *c.ItoA() << std::endl;
+    PRINT(c);
+
     //char num1[] = "1000000";
     char num1[] = "723972359729357927536526515164159069889121"
         //"72397235972935792753652651516415906988912444" 
@@ -461,84 +476,96 @@ void test6Calc()
     std::cout << num1 << std::endl;
     c.Push(num1);
     c.Dup();
-    std::cout << *c.ItoA() << std::endl << std::endl;
+    PRINT(c);
     c.Mul();
     c.Dup();
-    std::cout << *c.ItoA() << std::endl << std::endl;
-    c.Dup();
-    c.Mul();
-    c.Dup();
-    std::cout << *c.ItoA() << std::endl << std::endl;
+    PRINT(c);
     c.Dup();
     c.Mul();
     c.Dup();
-    std::cout << *c.ItoA() << std::endl << std::endl;
+    PRINT(c);
     c.Dup();
     c.Mul();
     c.Dup();
-    std::cout << *c.ItoA() << std::endl << std::endl;
+    PRINT(c);
     c.Dup();
     c.Mul();
     c.Dup();
-    std::cout << *c.ItoA() << std::endl << std::endl;
+    PRINT(c);
     c.Dup();
     c.Mul();
     c.Dup();
-    std::cout << *c.ItoA() << std::endl << std::endl;
+    PRINT(c);
     c.Dup();
     c.Mul();
     c.Dup();
-    std::cout << *c.ItoA() << std::endl;
+    PRINT(c);
     c.Dup();
     c.Mul();
     c.Dup();
-    std::cout << *c.ItoA() << std::endl << std::endl;
+    PRINT(c);
     c.Dup();
     c.Mul();
     c.Dup();
-    std::cout << *c.ItoA() << std::endl << std::endl;
+    PRINT(c);
     c.Dup();
     c.Mul();
     c.Dup();
-    std::cout << *c.ItoA() << std::endl;
+    PRINT(c);
     c.Dup();
     c.Mul();
     c.Dup();
-    std::cout << *c.ItoA() << std::endl << std::endl;
+    PRINT(c);
     c.Dup();
     c.Mul();
     c.Dup();
-    std::cout << *c.ItoA() << std::endl << std::endl;
+    PRINT(c);
     c.Dup();
     c.Mul();
     c.Dup();
+    PRINT(c);
+    c.Dup();
+    c.Mul();
+    c.Dup();
+    PRINT(c);
 
-    std::string *s = c.ItoA();
-    std::cout << "size " << s->length()  << std::endl;
-    std::cout << *s << std::endl << std::endl << std::endl;
+//#ifdef CAL10
+//    std::cout << *c.ItoA() << std::endl;
+//    std::string* s = c1.ItoA();
+//    std::cout << "size " << s->length() << std::endl;
+//    std::cout << *s << std::endl << std::endl << std::endl;
+//#else
+//    c.Pop(t2);
+//    Convert2E30to10E9(t10, t2);
+//    c1.Push(t10);
+//    std::string* s = c1.ItoA();
+//    std::cout << "size " << s->length() << std::endl;
+//    std::cout << *s << std::endl << std::endl << std::endl;
+//#endif
+
 }
 
 
 
 void test7Calc()
 {
-    Calculator c;
+    CALCULATOR c;
     char num[] = "261261924691694619461924691649164";
     c.Push(num);
     c.PopStore("test");
-    std::cout << *c.ItoA() << std::endl;
+    PRINT(c);
     c.PushStore("test");
-    std::cout << *c.ItoA() << std::endl;
+    PRINT(c);
     c.PushStore("test1");
     c.Push(0xFFFFFFFF);
-    std::cout << *c.ItoA() << std::endl;
+    PRINT(c);
     c.Push(0x7FFFFFFF);
-    std::cout << *c.ItoA() << std::endl << std::endl;
+    PRINT(c);
 }
 
 void test8Calc()
 {
-    Calculator c;
+    CALCULATOR c;
 
     char num1[] = "500000000";
     char num2[] = "500000001";
@@ -552,119 +579,132 @@ void test8Calc()
     c.Push(num1);
     c.Push(num2);
     c.Add();
-    std::cout << *c.ItoA() << std::endl;
+    PRINT(c);
     c.Push(num1);
     c.ChangeSign();
     c.Push(num2);
     c.Add();
-    std::cout << *c.ItoA() << std::endl;
+    PRINT(c);
     c.Push(num2);
     c.ChangeSign();
     c.Push(num1);
     c.Add();
-    std::cout << *c.ItoA() << std::endl;
+    PRINT(c);
 
     c.Push(num3);
     c.Push(num4);
     c.ChangeSign();
     c.Add();
-    std::cout << *c.ItoA() << std::endl;
+    PRINT(c);
 
     c.Push(num4);
     c.Push(num3);
     c.ChangeSign();
     c.Add();
-    std::cout << *c.ItoA() << std::endl;
+    PRINT(c);
 
     c.Push(num3000);
     c.Push(num4000);
     c.ChangeSign();
     c.Add();
-    std::cout << *c.ItoA() << std::endl;
+    PRINT(c);
 
     c.Push(num4000);
     c.Push(num3000);
     c.ChangeSign();
     c.Add();
-    std::cout << *c.ItoA() << std::endl;
+    PRINT(c);
 
 
 
     c.Push(num);
     c.Dup();
     c.Dup();
-    std::cout << *c.ItoA() << std::endl;
+    PRINT(c);
     c.Add();
-    std::cout << *c.ItoA() << std::endl;
+    PRINT(c);
     c.Push(num);
     c.Dup();
     c.Dup();
-    std::cout << *c.ItoA() << std::endl;
+    PRINT(c);
     c.ChangeSign();
     c.Dup();
-    std::cout << *c.ItoA() << std::endl;
+    PRINT(c);
     c.Add();
-    std::cout << *c.ItoA() << std::endl;
+    PRINT(c);
     c.Push(num);
     c.Push(-1);
     c.Add();
-    std::cout << *c.ItoA() << std::endl;
+    PRINT(c);
     c.Push(1);
     c.Push(num);
     c.ChangeSign();
     c.Add();
-    std::cout << *c.ItoA() << std::endl ;
+    PRINT(c);
     std::cout  << std::endl;
 }
 
 void test9Calc()
 {
-    Calculator c;
+    CALCULATOR c;
     char num1[] = "77777777777777777777777777777777";
     char num2[] = "33333333333333333333333333333333";
     c.Push(num1);
     c.Push(num2);
     c.Add();
-    std::cout << *c.ItoA() << std::endl;
+    PRINT(c);
     c.Push(num1);
     c.Push(num2);
     c.ChangeSign();
     c.Add();
-    std::cout << *c.ItoA() << std::endl;
+    PRINT(c);
     c.Push(num2);
     c.Push(num1);
     c.ChangeSign();
     c.Add();
-    std::cout << *c.ItoA() << std::endl;
+    PRINT(c);
     c.Push(num2);
     c.ChangeSign();
     c.Push(num1);
     c.ChangeSign();
     c.Add();
-    std::cout << *c.ItoA() << std::endl;
+    PRINT(c);
     c.Push(num2);
     c.ChangeSign();
     c.Push(num1);
     c.Add();
-    std::cout << *c.ItoA() << std::endl;
+    PRINT(c);
     c.Push(num1);
     c.ChangeSign();
     c.Push(num2);
     c.Add();
-    std::cout << *c.ItoA() << std::endl  << std::endl;
+    PRINT(c);
 }
 
 void test10Calc()
 {
-    Calculator c;
+    //CALCULATOR c;
+    //c.Push(1);
+    //c.Push(1);
+    //for (int i = 0; i < 1000; i++){
+    //    c.Add();
+    //    c.Dup();
+    //    c.Dup();
+    //    std::string* s = c.ItoA();
+    //    std::cout << "size " << s->length() << std::endl;
+    //    std::cout << *s << std::endl << std::endl;
+    //}
+    //std::cout  << std::endl << std::endl;
+
+    CALCULATOR c;
     c.Push(1);
     c.Push(1);
     c.Mul();
-    std::cout << *c.ItoA() << std::endl;
-    c.Push(0); 
+    PRINT(c);
+    c.Push(0);
     c.Push(1);
     c.Mul();
-    std::cout << *c.ItoA() << std::endl;
+    PRINT(c);
     c.Push(2);
     for (int i = 0; i < 20; i++) {
         c.Dup();
@@ -674,12 +714,12 @@ void test10Calc()
         std::cout << "size " << s->length() << std::endl;
         std::cout << *s << std::endl << std::endl;
     }
-
+/*    */
 }
 
 void test11CalcGCD()
 {
-    Calculator c;
+    CALCULATOR c;
 //    char num[] = "693";//"555555555";
 //    char num1[] = "609";//"555";
     char num1[] = "555555555";
@@ -711,7 +751,7 @@ void test11CalcGCD()
 
 void test12CalcSmall()
 {
-    Calculator c;
+    CALCULATOR c;
     //    char num[] = "693";//"555555555";
     //    char num1[] = "609";//"555";
     char num1[] = "777";
@@ -735,7 +775,11 @@ void test12CalcSmall()
     char num31[] = "77777777777777777777777777777777777777";
     char num3[] = "555555555555555555555555555555555555555";
     c.Push(num31);
+    c.Dup();
+    std::cout << *c.ItoA() << std::endl;
     c.Push(num3);
+    c.Dup();
+    std::cout << *c.ItoA() << std::endl;
     c.Mul();
     std::cout << *c.ItoA() << std::endl;
     char num41[] = "7777777777777777777777777777777777777777777777777777777777777777777777777777";
@@ -749,7 +793,7 @@ void test12CalcSmall()
 
 void test13QuotientReminder()
 {
-    Calculator c;
+    CALCULATOR c;
     
     char num1[] = "777777777777777";
     char num[] = "5555555555555";
@@ -817,7 +861,7 @@ void test13QuotientReminder()
 
 void test14Exp()
 {
-    Calculator c;
+    CALCULATOR c;
     c.Push(2);
     c.Push(86243);
     c.Exp();
@@ -829,31 +873,31 @@ void test14Exp()
     c.Exp();
     c.Push(-1);
     c.Add();
-    std::cout << "Exp " << *c.ItoA() << std::endl;
+   // std::cout << "Exp " << *c.ItoA() << std::endl;
     c.Push(2);
     c.Push(20996011);
     c.Exp();
     c.Push(-1);
     c.Add();
-    std::cout << "Exp " << *c.ItoA() << std::endl << std::endl;
+  //  std::cout << "Exp " << *c.ItoA() << std::endl << std::endl;
 
 }
 
 void test15Jacobi()
 {
-	Calculator c;
-	std::cout << "Jacobi ( ";
-	c.Push(9907);
-	c.Dup();
-	std::cout << *c.ItoA() << "/ ";
-	c.Push(1001);
-	c.Dup();
-	std::cout << *c.ItoA() << " ) = ";
-	c.Jacobi();
-	std::cout << *c.ItoA() << std::endl;
+	CALCULATOR c;
+	//std::cout << "Jacobi ( ";
+	//c.Push(9907);
+	//c.Dup();
+	//std::cout << *c.ItoA() << "/ ";
+	//c.Push(1001);
+	//c.Dup();
+	//std::cout << *c.ItoA() << " ) = ";
+	//c.Jacobi();
+	//std::cout << *c.ItoA() << std::endl;
 
 
-	for (int j = 1; j < 60; j += 2)
+	for (int j = 3; j < 60; j += 2)
 		for (int i = 1; i < 31; i++) {
 			std::cout << "Jacobi ( ";
 			c.Push(j);
@@ -887,7 +931,28 @@ void test16MillerRabin(char c[]) {
         i = i + 2;
     }
 
-    Calculator cal; 
+    CALCULATOR cal; 
+
+    /* debug code to be removed*/
+    //char YY[] = "4611686014132420609";
+    //char m[] =  "2147483649";
+//    char YY[] = "2605843007066210305";
+//    char m[]   = "1073741824";
+    //cal.Push(YY);
+    //cal.Push(m);
+    //cal.QuotientRemainder();
+    //std::cout << "Remainder: " << *cal.ItoA() << std::endl;
+    //std::cout << "Quotient : " << *cal.ItoA() << std::endl;
+#ifdef PERF
+    LARGE_INTEGER StartingTime, EndingTime, ElapsedMicroseconds;
+    LARGE_INTEGER Frequency;
+#endif
+#ifdef PERF
+    QueryPerformanceFrequency(&Frequency);
+    QueryPerformanceCounter(&StartingTime);
+#endif
+
+
     cal.Push((char*) c );
     for (int itx = 0; itx < 2000; itx++) {
         cal.Push((char*)c);
@@ -895,18 +960,26 @@ void test16MillerRabin(char c[]) {
         cal.Push(itx);
         cal.Mul();
         cal.Add();    
-        BInt temp;
+        BINT temp;
         cal.Pop(temp);
         if (MillerRabin(temp, witnesses)) {
-            cal.Push(temp);
-            std::cout << "probably prime: " << *cal.ItoA() << std::endl;
+            //cal.Push(temp);
+            //std::cout << "probably prime: " << *cal.ItoA() << std::endl;
         }
     }
+
+#ifdef PERF
+        QueryPerformanceCounter(&EndingTime);
+    ElapsedMicroseconds.QuadPart = EndingTime.QuadPart - StartingTime.QuadPart;
+    ElapsedMicroseconds.QuadPart *= 1000000;
+    ElapsedMicroseconds.QuadPart /= Frequency.QuadPart;
+    std::cout << "Elapsed time(microseconds) : " << ElapsedMicroseconds.QuadPart << std::endl;
+#endif
 }
 
 void test17()
 {
-    Calculator c;
+    CALCULATOR c;
 
     c.Push((char *) "9365865165198658618561865816581658");
     for (int i = 0; i < 1000; i++) {
@@ -966,7 +1039,7 @@ void test17()
 
 void test18()
 {
-    Calculator c;
+    CALCULATOR c;
 
     c.Push((char*)"9999999999999999999999999999999999");
     c.Dup();
@@ -1031,120 +1104,10 @@ void test18()
 
 }
 
-bool MillerRabin(BInt& number)
-{
-	PrimeTable pt(LIMIT);
-
-	std::vector<unsigned int>  witnesses;
-
-	witnesses.push_back(2);
-	unsigned int i = 3;
-	while (witnesses.size() < WCOUNT) {
-		if (pt.IsPrime(i)) witnesses.push_back(i);
-		i = i + 2;
-	}
-
-    Calculator cal;
-	cal.Push(number);
-	if (cal.IsEven()) {
-		std::cout << "argument must be odd " << std::endl;
-        return false;
-	}
-	else {
-		cal.PopStore("m"); //store argument in "m"
-		cal.PushStore("m");
-		cal.Push(-1);
-		cal.Add();
-		cal.PopStore("m-1");
-		cal.PushStore("m-1");
-		int s = 0;
-		while (cal.IsEven()) {
-			cal.Div2();
-			cal.PopStore("d");
-			cal.PushStore("d");
-			s++;
-		}
-		cal.Pop(); //remove d from stack, it is saved in the store
-		// m-1 has now been cleaned of factor 2^s
-		for (size_t ix = 0; ix < witnesses.size(); ix++)
-		{
-			// calculate  x^d mod n 
-			cal.Push(witnesses[ix]); // x on stack
-			cal.PopStore("Multiplier");// x in multiplier
-			bool isZ = false;
-			cal.Push(1);
-			cal.PopStore("x");
-			do {
-				cal.PushStore("d");
-				bool isE = cal.IsEven();
-				cal.Div2();
-				isZ = cal.IsZero();
-				cal.PopStore("d");
-				cal.PushStore("x");
-				if (!isE) {
-					cal.PushStore("Multiplier");
-					cal.Mul();
-					cal.PushStore("m");
-					cal.Mod();
-				}
-				cal.PopStore("x");
-				if (!isZ) {
-					cal.PushStore("Multiplier");
-					cal.Square();
-					cal.PushStore("m");
-					cal.Mod();
-					cal.PopStore("Multiplier"); // 
-				}
-			} while (!isZ);
-			// repeat s times...
-			cal.PushStore("x");
-			cal.PopStore("y");
-			for (int sx = 0; sx < s; sx++) {
-				//cal.dumpStack(4);
-				cal.PushStore("y");
-				cal.Square();
-				cal.PushStore("m");
-				cal.Mod();
-				cal.PopStore("y");
-				cal.PushStore("y");
-				cal.Push(1);
-				if (cal.IsEqual()) {
-					cal.PushStore("x");
-					if (!cal.IsEqual()) {
-						// x == 1
-						cal.PushStore("m-1");
-						if (!cal.IsEqual()) {
-							//bingo
-							cal.Pop();cal.Pop();cal.Pop();
-							//std::cout << "Composite" << std::endl;
-                            return false;
-						}
-						cal.Pop(); //get rid "m-1" on stack
-					}
-					else
-						cal.Pop(); // get rid of "x" on stack
-					cal.Pop(); // get rid of "x" on stack
-				}
-				cal.Pop(); // get rid of 1 on stack
-				cal.PopStore("x"); //save x = y
-
-			}
-			cal.PushStore("y");
-			cal.Push(1);
-			if (!cal.IsEqual()) {
-				cal.Pop(); cal.Pop();
-				//std::cout << "Composite" << std::endl;
-				return false;
-			}
-		}
-		return true;
-	}
-
-}
 
 void test19()
 {
-    Calculator cal;
+    CALCULATOR cal;
     cal.Push(859433);
     cal.Push(3021377);
     cal.Mul();
@@ -1158,13 +1121,23 @@ void test19()
 
 void test20() 
 {
-    Calculator cal;
-    BInt P;
-    BInt A;
-    BInt Res;
+#ifdef PERF
+    LARGE_INTEGER StartingTime, EndingTime, ElapsedMicroseconds;
+    LARGE_INTEGER Frequency;
+#endif
+
+    CALCULATOR cal;
+    BINT P;
+    BINT A;
+    BINT Res;
 #define P224 1
 #if P224
     // NIST P-224 
+#ifdef PERF
+    QueryPerformanceFrequency(&Frequency);
+    QueryPerformanceCounter(&StartingTime);
+#endif
+
     cal.Push((char*)"26959946667150639794667015087019630673557916260026308143510066298881");
     cal.Pop(P);
     cal.Push(2021);
@@ -1180,6 +1153,15 @@ void test20()
     cal.Add();
     cal.Pop(A);
     SquareRootModM(Res, A, P);
+#ifdef PERF
+    QueryPerformanceCounter(&EndingTime);
+    ElapsedMicroseconds.QuadPart = EndingTime.QuadPart - StartingTime.QuadPart;
+    ElapsedMicroseconds.QuadPart *= 1000000;
+    ElapsedMicroseconds.QuadPart /= Frequency.QuadPart;
+    std::cout << "Elapsed time(microseconds) : " << ElapsedMicroseconds.QuadPart << std::endl;
+#endif
+
+
     cal.Push(A);
     std::cout << " A:   " << *cal.ItoA() << std::endl;
     cal.Push(P);
@@ -1233,9 +1215,10 @@ void test21()
     LARGE_INTEGER Frequency;
 #endif
 
-    Calculator cal;
-    BInt res;
-    int arg = 400;
+    CALCULATOR cal;
+    BINT res;
+
+    int arg = 200;
 
 #ifdef PERF
     QueryPerformanceFrequency(&Frequency);
@@ -1251,7 +1234,7 @@ void test21()
     std::cout <<  "Elapsed time(microseconds) : " << ElapsedMicroseconds.QuadPart << std::endl;
 #endif
     cal.Push(res);
-    std::cout << " " << arg << "! : " << *cal.ItoA() << std::endl;
+    std::cout << "res  " << *cal.ItoA() << std::endl;
 }
 
 void test22()
@@ -1267,13 +1250,13 @@ void test22()
     cal.Add();
     cal.Dup();
     std::cout << "temp " << *cal.ItoA() << std::endl;
-    cal.Pop(temp);
+ /*   cal.Pop(temp);
     Convert10E9to2E30(temp2, temp);
-    for (int i = 0; i < temp2.number.size(); i++) printf(" %3d :  %08X \n", i, temp2.number[i]);
+    for (int i = 0; i < temp2.number.size(); i++) printf(" %3d :  %08X \n", i, temp2.number[i]);*/
 
-    Convert2E30to10E9(temp, temp2);
-    cal.Push(temp);
-    std::cout << "temp " << *cal.ItoA() << std::endl << std::endl;
+    //Convert2E30to10E9(temp, temp2);
+    //cal.Push(temp);
+    //std::cout << "temp " << *cal.ItoA() << std::endl << std::endl;
 
     MersenneBInt2E20(temp2, 86243);
     Convert2E30to10E9(temp, temp2);
@@ -1285,8 +1268,21 @@ void test22()
     cal.Push(temp);
     std::cout << "temp " << *cal.ItoA() << std::endl << std::endl;
 
+    MersenneBInt2E20(temp2, 209960 *5);
+    Convert2E30to10E9(temp, temp2);
+    cal.Push(temp);
+    std::cout << "temp " << *cal.ItoA() << std::endl << std::endl;
+
 }
 
+void test23()
+{
+    CALCULATOR cal;
+    
+    cal.Push((char *) "293619494913165487615161600641311312659");
+    std::cout << " : " << *cal.ItoA() << std::endl;
+
+}
 
 int main()
 {
@@ -1313,9 +1309,9 @@ int main()
     //test18();
     //Factoring((char*)"2147483649");
     //test19();
-    //test20();
+    test20();
     //test21();
-
-    test22();
+    //test22();
+    //test23();
     std::cout << "Done !\n";
 }
