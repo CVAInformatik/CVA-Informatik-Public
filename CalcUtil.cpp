@@ -11,19 +11,19 @@ void ModularExponentiation(BINT& Res, const BINT &a, const BINT &exp, const BINT
     CALCULATOR Iterator;
     BINT temp;
 
-  	Square.Push(a);
+	Square.Push(a);
     Prod.Push(1);
     Iterator.Push(exp);
 
-	while (!Iterator.IsZero()) {
+	while (!Iterator.IsEqual(0)) {
 		if (!Iterator.IsEven()) {
 			Square.Dup();
 			Square.Pop(temp);
 			Prod.Push(temp);
 			Prod.Mul(mod);
-    }
+        }
 		Iterator.Div2();
-        if (!Iterator.IsZero()) {
+        if (!Iterator.IsEqual(0)) {
             Square.Square(mod);
         }
 	}
@@ -110,9 +110,9 @@ void SquareRootModM(BINT& Res, BINT& A, BINT& Mod)
     cal.Push(Mod);
     cal.Push(A);
     cal.Jacobi();
-    if (!cal.IsOne()) {
+    if (!cal.IsEqual(1)) {
         cal.Push(A);
-        std::cout << "not a square :" << cal.ItoA() << std::endl;
+        std::cout << "not a square :"  << *cal.ItoA() << std::endl;
         return;
     }
     cal.Clear();
@@ -125,11 +125,11 @@ void SquareRootModM(BINT& Res, BINT& A, BINT& Mod)
     cal.Push(-1);
     cal.Add();
     int S = 0;
-    while (!cal.IsZero() && cal.IsEven()) {
+    while (!cal.IsEqual(0) && cal.IsEven()) {
         S++;
         cal.Div2();
-        if (cal.IsZero()) {
-            std::cout << "not a square :" << *cal.ItoA() << std::endl;
+        if (cal.IsEqual(0)) {
+            std::cout << "not a square "  << std::endl;
             return;
         }
     }
@@ -150,10 +150,14 @@ void SquareRootModM(BINT& Res, BINT& A, BINT& Mod)
         cal.Pop(z);
         cal.Push(z);
         cal.Jacobi();
-    } while (!cal.IsMinusOne());
+    } while (!cal.IsEqual(-1));
+    //cal.Push((char*)"20987094688876480237009540038342951804750719680990270636947783175614");
+    //cal.Pop(z);
     cal.Clear();
     ModularExponentiation(c, z, Q, P);
+
     ModularExponentiation(t, A, Q, P);
+
     cal.Push(Q);
     cal.Push(1);
     cal.Add();
@@ -162,13 +166,15 @@ void SquareRootModM(BINT& Res, BINT& A, BINT& Mod)
     ModularExponentiation(R, A, temp, P);
 loop:
     cal.Push(t);
-    if (cal.IsZero()) {
+    if (cal.IsEqual(0)) {
         cal.Pop(Res);
+        std::cout << "Root is 0" << std::endl;
         return;
     }
-    if (cal.IsOne()) {
+    if (cal.IsEqual(1)) {
         cal.Push(R);
         cal.Pop(Res);
+        std::cout << "Root is " << *cal.ItoA() << std::endl;
         return;
     }
     int i = 0;
@@ -177,7 +183,7 @@ loop:
         i++;
         ModularSquare(t1, t1, P);
         cal.Push(t1);
-    } while (!cal.IsOne());
+    } while (!cal.IsEqual(1));
     cal.Pop();
     cal.Push(2);
     cal.Push(M);
@@ -235,7 +241,7 @@ bool MillerRabin(BINT& number, const std::vector<unsigned int>& witnesses)
                 cal.PushStore("d");
                 bool isE = cal.IsEven();
                 cal.Div2();
-                isZ = cal.IsZero();
+                isZ = cal.IsEqual(0);
                 cal.PopStore("d");
                 cal.PushStore("x");
                 if (!isE) {
@@ -259,18 +265,24 @@ bool MillerRabin(BINT& number, const std::vector<unsigned int>& witnesses)
             for (int sx = 0; sx < s; sx++) {
                 cal.PushStore("y");
                 cal.Square();
+                //cal.Dup();
+                //std::cout << "y*y " << *cal.ItoA() << std::endl;
                 cal.PushStore("m");
+                //cal.Dup();
+                //std::cout <<"m "<< * cal.ItoA() << std::endl;
                 cal.Mod();
                 cal.PopStore("y");
                 cal.PushStore("y");
-                if (cal.IsOne()) {
+                //cal.Push(1);
+                if (cal.IsEqual(1)) {
                     cal.PushStore("x");
-                    if (!cal.IsOne()) {
+                    if (!cal.IsEqual(1)) {
                         // x == 1
                         cal.PushStore("m-1");
                         if (!cal.IsEqual()) {
                             //bingo
                             cal.Pop();cal.Pop();//cal.Pop();
+                            //std::cout << "Composite" << std::endl;
                             return false;
                         }
                         cal.Pop(); //get rid "m-1" on stack
@@ -283,7 +295,8 @@ bool MillerRabin(BINT& number, const std::vector<unsigned int>& witnesses)
                 cal.PopStore("x"); //save x = y
             }
             cal.PushStore("y");
-            if (!cal.IsOne()) {
+            //cal.Push(1);
+            if (!cal.IsEqual(1)) {
                 cal.Pop(); cal.Pop();
                 //std::cout << "Composite" << std::endl;
                 return false;
@@ -378,7 +391,7 @@ void Convert10E9to2E30(BInt2E30& dest, BInt& src)
         cal.QuotientRemainder();
         cal.Pop(temp);
         temp1.number.push_back(temp.number[0]);
-    } while (!cal.IsZero());
+    } while (!cal.IsEqual(0));
 
     if ((temp1.number.size() % 2) == 1) temp1.number.push_back(0);
 
@@ -438,3 +451,4 @@ void MersenneBInt2E20(BInt2E30& dest, uint N)
     }
 
 }
+

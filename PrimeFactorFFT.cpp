@@ -26,15 +26,6 @@ If this is what you want to do, use the GNU Library General Public License inste
 #include "CalcUtil.h"
 #include "Calculator2E30.h"
 
-/*
-#ifdef CAL10
-#define CALCULATOR Calculator 
-#define BINT BInt
-#else
-#define CALCULATOR Calculator2E30 
-#define BINT BInt2E30
-#endif
-*/
 
 static std::random_device rd;
 static std::mt19937 mt(rd());
@@ -528,21 +519,6 @@ void test6Calc()
     c.Mul();
     c.Dup();
     PRINT(c);
-
-//#ifdef CAL10
-//    std::cout << *c.ItoA() << std::endl;
-//    std::string* s = c1.ItoA();
-//    std::cout << "size " << s->length() << std::endl;
-//    std::cout << *s << std::endl << std::endl << std::endl;
-//#else
-//    c.Pop(t2);
-//    Convert2E30to10E9(t10, t2);
-//    c1.Push(t10);
-//    std::string* s = c1.ItoA();
-//    std::cout << "size " << s->length() << std::endl;
-//    std::cout << *s << std::endl << std::endl << std::endl;
-//#endif
-
 }
 
 
@@ -1138,7 +1114,8 @@ void test20()
     QueryPerformanceCounter(&StartingTime);
 #endif
 
-    cal.Push((char*)"26959946667150639794667015087019630673557916260026308143510066298881");
+    char Pascii[] = "26959946667150639794667015087019630673557916260026308143510066298881";
+    cal.Push(Pascii);
     cal.Pop(P);
     cal.Push(2021);
     cal.Dup();
@@ -1149,7 +1126,8 @@ void test20()
     cal.Push(-3);
     cal.Mul();
     cal.Add();
-    cal.Push((char*)"18958286285566608000408668544493926415504680968679321075787234672564");
+    char Aascii[] = "18958286285566608000408668544493926415504680968679321075787234672564";
+    cal.Push(Aascii);
     cal.Add();
     cal.Pop(A);
     SquareRootModM(Res, A, P);
@@ -1161,9 +1139,8 @@ void test20()
     std::cout << "Elapsed time(microseconds) : " << ElapsedMicroseconds.QuadPart << std::endl;
 #endif
 
-
     cal.Push(A);
-    std::cout << " A:   " << *cal.ItoA() << std::endl;
+    std::cout << std::endl << " A:   " << *cal.ItoA() << std::endl;
     cal.Push(P);
     std::cout << " P:   " << *cal.ItoA() << std::endl;
     cal.Push(Res);
@@ -1187,7 +1164,7 @@ void test20()
     cal.Push(P);
     cal.Push(A);
     cal.Jacobi();
-    if (cal.IsOne()) {
+    if (cal.IsEqual(1)) {
         SquareRootModPrime(Res, A, P); 
         cal.Push(A);
         std::cout << " A:   " << *cal.ItoA() << std::endl;

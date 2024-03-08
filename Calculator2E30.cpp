@@ -10,103 +10,26 @@ If this is what you want to do, use the GNU Library General Public License inste
 
 
 #include "Calculator2E30.h"
+//
+#define CALCULATOR Calculator2E30 
+#define BINT BInt2E30
+#define BINTPTR BInt2E30Ptr
+#define DIVRMOD(x)  Div2E30(x)
 
-
+//#include "CalcUtil.h"
 
 Calculator2E30::Calculator2E30() {
+	stack.reserve(10);
 	dist = new std::uniform_int_distribution<uint>(0, RMOD - 1);
-
 }
 
 Calculator2E30::~Calculator2E30() {
 	delete dist;
 }
+
+#include "CalculatorGeneric.h"
+
 // stack operations
-void Calculator2E30::Push(int i) {
-	BInt2E30Ptr temp(new BInt2E30); temp->number.clear();
-	s64 it = i;
-	temp->sign = (it >= 0) ? 1 : -1;
-
-	if (it < 0) it = -1 * i;
-	do {
-		temp->number.push_back(it % (s64)RMOD);
-		it = it / RMOD;
-	} while (it > 0);
-	stack.push_back(temp);
-
-}
-void Calculator2E30::Push(const BInt2E30& b) {
-	BInt2E30Ptr temp(new BInt2E30);
-	Dup(*temp, b);
-	stack.push_back(temp);
-
-}
-void Calculator2E30::Swap() {
-
-	if (stack.size() > 1) {
-		BInt2E30Ptr t1 = stack.back(); 		stack.pop_back();
-		BInt2E30Ptr t2 = stack.back();		stack.pop_back();
-		stack.push_back(t1);
-		stack.push_back(t2);
-	}
-}
-
-/* ASCII Conversions    */
-void Calculator2E30::Push(char* c) {
-	BInt2E30 temp;
-	char* ct1, * ct2;
-
-	ct1 = ct2 = c;
-	temp.sign = 1;
-
-	while (isspace(*ct1)) ct1++;
-	if (*ct1 == '-') {
-		temp.sign = -1;
-		ct1++;
-	}
-	ct2 = ct1;
-
-	while (isdigit(*ct2)) ct2++; // find the end;
-	if (ct2 == ct1) {  //bail out something is wrong
-		std::cerr << "unknown format " << c << std::endl;
-	}
-	// we assume we have something number like 
-	temp.number.clear();
-	temp.number.push_back(0);
-	int tempInt = 0;
-	int counter = 0;
-	while (isdigit(*ct1)) {
-		tempInt = 10 * tempInt;
-		tempInt += (*ct1) - '0';
-		counter++;
-		ct1++;
-		if (counter == 3) {
-			Push(tempInt);
-			SimpleAdditionSubtractionLadder1(1, 1000, 1, temp);
-			Add();
-			Pop(temp);
-			counter = tempInt = 0;
-		}
-	}
-	switch (counter) {
-	case 1:
-		Push(tempInt);
-		SimpleAdditionSubtractionLadder1(1, 10, 1, temp);
-		Add();
-		Pop(temp);
-		break;
-	case 2:
-		Push(tempInt);
-		SimpleAdditionSubtractionLadder1(1, 100, 1, temp);
-		Add();
-		Pop(temp);
-		break;
-	default: break;
-	}
-	
-	Normalize(temp);
-	Push(temp);
-}
 
 /* Arithmetic */
 
@@ -399,304 +322,7 @@ void Calculator2E30::Div2E30(BInt2E30& A)
 	}
 }
 
-void Calculator2E30::GCDAux(BInt2E30Ptr X, BInt2E30Ptr Y)
-{
-	BInt2E30 g;
-	BInt2E30 x;  		Dup(x, *X);
-	BInt2E30 y;  		Dup(y, *Y);
 
-	/* count common 2^30 factors */
-	int i = 0;
-	u64 min_sz = std::min(x.number.size(), y.number.size());
-	for (u64 i = 0; i < min_sz; i++)
-		if ((x.number[i] | y.number[i]) == 0)  i++; /* counter #1000 */
-		else break;
-
-	/* then remove them and update g */
-	for (int i2 = 0; i2 < i; i2++)  /* then remove them and update g */
-	{
-		g.number.push_back(0);
-		Div2E30(x); Div2E30(y);
-	}
-	g.number.push_back(1);
-
-
-	/* copy to temps*/
-	BInt2E30 u; Dup(u, x);
-	BInt2E30 v; Dup(v, y);
-
-	/* remove common 2 factors */
-	while ((u.number[0] & 1) == 0 && (v.number[0] & 1) == 0)
-	{
-		Div2(u); Div2(v); Mul2(g);
-	};
-
-	BInt2E30 A; A.number.push_back(1);
-	BInt2E30 B; B.number.push_back(0);
-	BInt2E30 C; C.number.push_back(0);
-	BInt2E30 D; D.number.push_back(1);
-
-	while (!IsZero(u)) {
-		//std::cout << "-----------------------------------" << std::endl;
-		DUMPINT("u", u); 		DUMPINT("v", v);		DUMPINT("A", A);
-		DUMPINT("B", B);		DUMPINT("C", C);		DUMPINT("D", D);
-		//std::cout << "-----------------------------------" << std::endl;
-
-		while ((u.number[0] & 1) == 0)
-		{
-			Div2(u); DUMPINT("u", u);
-			if ((A.number[0] & 1) == 0 && (B.number[0] & 1) == 0) {
-				DUMPINT("A", A);
-				Div2(A); DUMPINT("B", B);
-				Div2(B);
-			}
-			else {
-				DUMPINT("A", A);
-				Add(A, y);		DUMPINT("A", A);
-				Div2(A);		DUMPINT("A", A);DUMPINT("B", B);
-				Sub(B, x);		DUMPINT("B", B);
-				Div2(B);		DUMPINT("B", B);
-			}
-		}
-
-		while ((v.number[0] & 1) == 0) {
-			DUMPINT("v", v);
-			Div2(v); DUMPINT("v", v);
-			if ((C.number[0] & 1) == 0 && (D.number[0] & 1) == 0) {
-				DUMPINT("C", C);
-				Div2(C);  DUMPINT("D", D);
-				Div2(D);
-			}
-			else {
-				DUMPINT("C", C);  DUMPINT("y", y);
-				Add(C, y);	DUMPINT("C", C);
-				Div2(C);	DUMPINT("C", C);  DUMPINT("D", D);	DUMPINT("x", x);
-				Sub(D, x);	DUMPINT("D", D);
-				Div2(D);	DUMPINT("D", D);
-			}
-		}
-		DUMPINT("u", u);	DUMPINT("v", v);
-
-		if (IsALarger(u, v) || IsEqual(u, v))
-		{
-			DUMPINT("u", u);DUMPINT("v", v);
-			Sub(u, v);	DUMPINT("u", u);	DUMPINT("A", A);	DUMPINT("C", C);
-			Sub(A, C);	DUMPINT("A", A);	DUMPINT("B", B);	DUMPINT("D", D);
-			Sub(B, D);	DUMPINT("B", B);
-		}
-		else {
-			DUMPINT("u", u);   DUMPINT("v", v);
-			Sub(v, u);	DUMPINT("v", v);  DUMPINT("A", A);	DUMPINT("C", C);
-			Sub(C, A);	DUMPINT("C", C);  DUMPINT("B", B);	DUMPINT("D", D);
-			Sub(D, B);	DUMPINT("D", D);
-
-		}
-	};
-
-
-	BInt2E30Ptr a1(new BInt2E30); Dup(*a1, C);
-	BInt2E30Ptr b1(new BInt2E30); Dup(*b1, D);
-	BInt2E30Ptr gcd(new BInt2E30); Dup(*gcd, v);
-	BInt2E30Ptr gmul(new BInt2E30); Dup(*gmul, g);
-
-	stack.push_back(a1);
-	stack.push_back(b1);
-	stack.push_back(gcd);
-	stack.push_back(gmul);
-	Mul();
-}
-
-void Calculator2E30::GCD() {
-	if (stack.size() < 2)
-		std::cout << "GCD() needs two arguments" << std::endl;
-	else {
-		if (IsZero(*stack[stack.size() - 1]))
-			std::cout << "GCD() needs non-zero arguments" << std::endl;
-		else if (IsZero(*stack[stack.size() - 2]))
-			std::cout << "GCD() needs non-zero arguments" << std::endl;
-		else {
-			BInt2E30Ptr A = stack.back(); stack.pop_back();
-			BInt2E30Ptr B = stack.back(); stack.pop_back();
-			GCDAux(A, B);
-		}
-	}
-
-
-}
-void Calculator2E30::ChangeSign() {
-	if (stack.size() > 0) {
-		BInt2E30Ptr temp(new BInt2E30); Pop(*temp);
-		temp->sign = -1 * temp->sign;
-		stack.push_back(temp);
-	}
-
-}
-
-/*
-  The Asign and Bsign parameters are normally A and B real signs, but sometimes we
-  want to overrule that.
-*/
-
-void Calculator2E30::AddAux( int Asign, BInt2E30& A, int Bsign, const BInt2E30& B)
-{
-	/* setup  */
-	u64 min_sz = std::min(A.number.size(), B.number.size());
-	
-	if (Asign == Bsign)
-	{
-		/* they have identical signs */
-		/* this is done in twp steps
-		*    1)  Add the digits without carry
-		*    2)  do ' + carry mod RMOD'
-		*/
-
-		/* step 1: add the other number, it may be longer or shorter than temp */
-		for (u64 i = 0; i < min_sz; i++)  A.number[i] = A.number[i] + B.number[i];
-
-		for (u64 i = min_sz; i < B.number.size(); i++)	A.number.push_back(B.number[i]);
-
-		/* step 3 */
-		int carry = 0;
-		for (u64 i = 0; i < A.number.size(); i++)
-		{
-			A.number[i] += carry;
-			if (A.number[i] & RMODMASK) {
-				A.number[i] -= RMOD;
-				carry = 1;
-			}
-			else
-				carry = 0;
-		}
-		if (carry) A.number.push_back(carry);
-	}
-	else
-	{
-		/* they have different signs */
-		/* this is done in four steps
-		*    1)  Multiply the digits in the negative number with -1
-		*    2)  Add the digits without carry
-		*    3)  do ' + carry mod RMOD'
-		*    if carry out from the MSD is -1
-		*    4)   (optional)  subtract from 0 and adjust sign of result.
-		*/
-
-		/* step 1: negate digits in the negative number, which is TOS,  and save them in temp  */
-		if (Asign == -1) {
-			A.sign = 1;
-			for (u64 i = 0; i < A.number.size(); i++) A.number[i] = -1 * A.number[i];
-			for (u64 i = 0; i < min_sz; i++)  A.number[i] = A.number[i] + B.number[i];
-			for (u64 i = min_sz; i < B.number.size(); i++)	A.number.push_back(B.number[i]);
-		}
-		else { /* Bsign == -1 */
-			for (u64 i = 0; i < min_sz; i++)  A.number[i] = A.number[i] - B.number[i];
-			for (u64 i = min_sz; i < B.number.size(); i++)	A.number.push_back(-B.number[i]);
-		}
-
-		/* step 3: now adjust carry/borrow and mod */
-		int c = 0;
-		for (int i = 0; i < A.number.size(); i++)
-		{
-			A.number[i] += c;
-			if (A.number[i] < 0) {
-				c = -1;
-				A.number[i] += RMOD;
-			}
-			else
-				c = 0;
-		}
-
-		/* step 4: final correction if c is set */
-		if (c != 0) {
-			A.sign = -1;
-			int c1 = 0;
-			for (int i = 0; i < A.number.size(); i++)
-			{
-				A.number[i] = 0 - A.number[i] + c1;
-				if (A.number[i] < 0) {
-					c1 = -1;
-					A.number[i] += RMOD;
-				}
-				else
-					c1 = 0;
-			}
-		}
-	}
-}
-
-void Calculator2E30::Add() {
-	if (stack.size() < 2)
-		std::cout << "Add() needs two arguments" << std::endl;
-	else {
-		BInt2E30Ptr temp(new BInt2E30); 
-
-		Dup( *temp, *stack.back());
-		stack.pop_back();
-		AddAux(temp->sign, *temp, stack.back()->sign, *stack.back());
-		stack.pop_back();
-		Normalize(temp);
-		stack.push_back(temp);
-	}
-}
-
-void Calculator2E30::Jacobi() {
-	if (stack.size() < 2)
-		std::cout << "Jacoby/Legendre  needs two arguments" << std::endl;
-	else {
-		BInt2E30Ptr Res(new BInt2E30); Res->number.clear();
-		BInt2E30Ptr A(new BInt2E30); Pop(*A);
-		BInt2E30Ptr M(new BInt2E30); Pop(*M);
-		if ((M->number.size() == 1) && (M->number[0] == 1))
-		{
-			Res->number.clear(); Res->number.push_back(1); Res->sign = 1;
-			stack.push_back(Res);
-			return;
-		}
-		else {
-			stack.push_back(A);
-			stack.push_back(M);
-			Mod();
-			if (IsZero(*stack.back())) {  //A|M 
-				stack.pop_back();
-				Res->number.push_back(0); Res->sign = 1;
-				stack.push_back(Res);
-			}
-			else {
-				Pop(*A); //reminder of A mod M
-				Res->number.push_back(1); Res->sign = 1;
-				while (!IsZero(*A)) {
-					while ((A->number[0] & 1) == 0)
-					{
-						Div2(*A);
-						switch (M->number[0] & 0x7)
-						{
-						case 3: case 5:   Res->sign = -1 * Res->sign;
-							break;
-						default:
-							break;
-						}
-					}
-					BInt2E30 temp;
-					Dup(temp, *A);
-					Dup(*A, *M);
-					Dup(*M, temp);
-					if ((3 == (A->number[0] & 0x3)) && (3 == (M->number[0] & 0x3)))
-						Res->sign = -1 * Res->sign;
-					stack.push_back(A);
-					stack.push_back(M);
-					Mod();
-					Pop(*A);
-				}
-				if ((M->number.size() == 1) && (M->number[0] == 1))  stack.push_back(Res);
-				else
-				{
-					Res->number.clear(); Res->number.push_back(0); Res->sign = 1;
-					stack.push_back(Res);
-					return;
-				}
-			}
-		}
-	}
-}
 void Calculator2E30::Div2(unsigned int Power) {
 
 	unsigned int _Shift = Power;
@@ -791,43 +417,7 @@ void Calculator2E30::Rand() {
 
 
 // 
-/* store operations  */
-void Calculator2E30::PopStore(const std::string& loc) {
-	if (stack.size() > 0) {
-		u64 t = stack.back()->number.size();  // debug
 
-		Store[loc] = stack.back();
-		stack.pop_back();
-		if (t != Store[loc]->number.size())  // debug
-			std::cout << "PopStore Error" << std::endl;  // debug
-	}
-
-}
-void Calculator2E30::PushStore(const std::string& loc) {
-	if (Store.find(loc) != Store.end())
-		stack.push_back(Store.find(loc)->second);
-	else
-		std::cout << "Lookup failed" << std::endl;
-}
-void Calculator2E30::ClearStore(const std::string& loc) {
-	if (Store.find(loc) != Store.end())
-		Store.erase(loc);
-	else
-		std::cout << "Lookup failed" << std::endl;
-}
-
-/*  Various Predicates */
-int  Calculator2E30::TOSStatus() {
-	if (stack.size() > 0)
-		if (IsZero(*(stack.back()))) return 0;
-		else return stack.back()->sign;
-	return 0;
-
-}
-int  Calculator2E30::TOSSize() {
-	if (stack.size() > 0) return (int)stack.back()->number.size();
-	return 0;
-}
 bool Calculator2E30::IsLarger() {
 	size_t sz = stack.size();
 	if (sz < 2)
@@ -841,80 +431,6 @@ bool Calculator2E30::IsLarger() {
 			return IsAbiggerNummerically(stack[sz - 2], stack[sz - 1]);
 	}
 	return false;
-}
-bool Calculator2E30::IsEqual() {
-	size_t sz = stack.size();
-	if (sz < 2)
-	{
-		std::cout << "IsLarger(): not enough arguments" << std::endl;
-		return false;
-	}
-	else
-		return IsEqual(*stack[sz - 1], *stack[sz - 2]);
-	return true;
-}
-
-bool Calculator2E30::IsEqual(BInt2E30 A, BInt2E30 B)
-{
-	if (A.sign != B.sign) return false;
-	if (A.number.size() != B.number.size()) return false;
-	for (size_t i = 0; i < A.number.size(); i++)
-		if (A.number[i] != B.number[i]) return false;
-	return true;
-}
-
-
-bool Calculator2E30::IsZero() {
-	if (stack.size() > 0) 	 return stack.back()->sign == 1
-		&& stack.back()->number[0] == 0
-		&& stack.back()->number.size() == 1;
-	return false;
-}
-
-bool Calculator2E30::IsOne() {
-	if (stack.size() > 0) return stack.back()->sign == 1
-		&& stack.back()->number[0] == 1
-		&& stack.back()->number.size() == 1;
-	return false;
-}
-bool Calculator2E30::IsMinusOne() {
-	if (stack.size() > 0) 	return stack.back()->sign == -1
-		&& stack.back()->number[0] == 1
-		&& stack.back()->number.size() == 1;
-	return false;
-
-}
-bool Calculator2E30::IsEven() {
-	if (stack.size() > 0) 	return ((stack.back()->number[0] & 1) == 0);
-	return false;
-}
-
-
-// for internal use......
-void Calculator2E30::dumpStack(int p) {
-	printf("stack(%d): \n", p);
-	if (stack.size() == 0)
-		std::cout << "empty stack" << std::endl;
-	else
-		for (int ix = 1; ix <= stack.size();ix++) {
-			printf("level %-2d : ", ix - 1);
-			DUMPINT("", *stack[stack.size() - ix]);
-		}
-	printf("--------------------------\n");
-
-}
-
-
-bool Calculator2E30::IsZero(BInt2E30 arg) {
-	int num = 0;
-	for (unsigned int i = 0; !num && (i < arg.number.size()); i++)	num |= arg.number[i];
-	return num == 0;
-
-}
-
-
-bool Calculator2E30::IsAbiggerNummerically(BInt2E30Ptr A, BInt2E30Ptr B) {
-	return IsAbiggerNummerically(*A, *B);
 }
 
 bool Calculator2E30::IsAbiggerNummerically(BInt2E30 A, BInt2E30 B)
@@ -946,62 +462,6 @@ bool Calculator2E30::IsALarger(BInt2E30 A, BInt2E30 B) {
 
 
 
-void Calculator2E30::Div2(BInt2E30& A) {
-
-	int borrow = 0;
-	for (s64 ix = A.number.size() - 1; ix >= 0; ix--)
-	{
-		int t = A.number[ix] + borrow; borrow = 0;
-		if (t & 1)  borrow = RMOD;
-		A.number[ix] = t >> 1;
-	}
-	while (A.number.size() && A.number.back() == 0) A.number.pop_back();
-}
-
-void Calculator2E30::Mul2(BInt2E30& A) {
-	int carry = 0;
-
-	for (int ix = 0; ix < A.number.size(); ix++)
-	{
-		int t = (A.number[ix] << 1) + carry;
-		carry = 0;
-		if (t >= RMOD) {
-			carry = 1;
-			t -= RMOD;
-		}
-		A.number[ix] = t;
-	}
-
-	//for (u64 i = 0; i < A.number.size(); i++) A.number[i] = A.number[i] + A.number[i];
-
-	//for (u64 i = 0; i < A.number.size(); i++)
-	//{
-	//	A.number[i] += carry;
-	//	if (A.number[i] & RMODMASK) {
-	//		A.number[i] -= RMOD;
-	//		carry = 1;
-	//	}
-	//	else
-	//		carry = 0;
-	//}
-	if (carry) A.number.push_back(carry);
-}
-void Calculator2E30::Dup(BInt2E30& D, const BInt2E30& S) {
-
-	D.number.clear();
-	D.sign = S.sign;
-	for (int ix = 0; ix < S.number.size(); ix++)
-		D.number.push_back(S.number[ix]);
-}
-
-void Calculator2E30::Normalize(BInt2E30& b) {
-	while (b.number.size() && b.number.back() == 0) b.number.pop_back();
-	if (b.number.size() == 0) {
-		b.number.push_back(0);
-		b.sign = 1;
-	}
-}
-
 #define FORMATSTRING "%08X"
 void Calculator2E30::DumpInt(std::string name, const BInt2E30& arg) {
 	char buffer[12];
@@ -1027,135 +487,45 @@ void Calculator2E30::DumpInt(std::string name, const BInt2E30& arg) {
 
 }
 
-#define SIMPLEMULT(s,A,sb, B)  SimpleAdditionSubtractionLadder1(s,A,sb, B)
 
-void Calculator2E30::RussianPeasantMult() {
-	BInt2E30 x;
-	BInt2E30 y;
-
-	Pop(x); 	Pop(y);
-#if TESTMUL == 1
-	std::cout << "RussianPeasantMult() " << std::endl;
-	DumpInt(" x: ", x);
-	DumpInt(" y: ", y);
-#endif
-	if (IsZero(x) || IsZero(y))
-	{
-		BInt2E30Ptr result(new BInt2E30());
-		result->number.push_back(0);
-		result->sign = 1;
-		stack.push_back(result);
-
-	}
-	else {
-		s64 xint = 0;
-		s64 yint = 0;
-
-		if (x.number.size() < 1 + SMALLNUMBERLIMIT)
-			for (s64 ix = x.number.size(); ix > 0;ix--)
-				xint = (xint * RMOD) + x.number[ix - 1];
-		if (y.number.size() < 1 + SMALLNUMBERLIMIT)
-			for (s64 iy = y.number.size(); iy > 0;iy--)
-				yint = (yint * RMOD) + y.number[iy - 1];
-
-		if (yint == 0)  		SIMPLEMULT(x.sign * y.sign, xint, y.sign, y);
-		else if (xint == 0)     SIMPLEMULT(y.sign * x.sign, yint, x.sign, x);
-		else if (xint < yint) 	SIMPLEMULT(x.sign * y.sign, xint, y.sign, y);
-		else                	SIMPLEMULT(y.sign * x.sign, yint, x.sign, x);
-	}
-}
-
-void Calculator2E30::Exp()
-{
-	if (stack.size() < 2)
-		std::cout << "Exp() needs two arguments" << std::endl;
-	else {
-		BInt2E30     Exponent;  Pop(Exponent);
-		BInt2E30Ptr  Argument(new BInt2E30); Pop(*Argument);
-		BInt2E30Ptr  Result(new BInt2E30); Result->number.push_back(1);
-		stack.push_back(Result);
-		while (!IsZero(Exponent)) {
-			if (Exponent.number.size() && Exponent.number[0] & 1) {
-				stack.push_back(Argument);
-				Mul();
-			}
-			Div2(Exponent);
-			if (!IsZero(Exponent)) {
-				stack.push_back(Argument);
-				stack.push_back(Argument);
-				Mul();
-				Dup(*Argument, *stack.back());
-				stack.pop_back();
-			}
-		}
-	}
-
-}
-void Calculator2E30::SimpleAdditionSubtractionLadder1(int sign, s64 A, int BSign, const BInt2E30& B) {
-{
-		/* this is taken from Crandall& Pomerance
-		*   "Prime Numbers,  A Computational Perspective" 2nd edition
-		*/
-		BInt2E30Ptr result(new BInt2E30); result->number.clear();result->number.push_back(0);
-		
-
-#if TESTMUL == 1
-		std::cout << "SimpleAdditionSubraction: " << std::endl;
-		std::cout << "Argument A:  " << A << std::endl;
-		DumpInt("Argument B:  ", B);
-#endif
-
-		s64 A3 = A * 3;
-		s64 A1 = A;
-		s64 A3EXORA1 = A3 ^ A1;
-		s64 Mask = (A3 >> 1 | A3 >> 2); // ! 
-		Mask |= Mask >> 2;
-		Mask |= Mask >> 4;
-		Mask |= Mask >> 8;
-		Mask |= Mask >> 16;
-		Mask |= Mask >> 32;
-		Mask++; // is now one '1' positioned the first non-zero bit of A3
-
-		Dup(*result, B);
-		Mask = Mask >> 1;
-		while (Mask > 1) {
-			Mul2(*result);
-			if (Mask & (A3EXORA1)) {
-				if (Mask & A3) {
-					AddAux(1, *result,1, B);
-				}
-				else {
-					AddAux(1, *result, -1, B);
-				}
-			}
-			Mask = Mask >> 1;
-		}
-		Normalize(*result);
-		if (!IsZero(*result)) result->sign = sign;
-
-#if TESTMUL == 1
-		DumpInt("result:  ", *result);
-#endif
-		stack.push_back(result);
-	}
-
-}
-
-
-uint  Calculator2E30::_Rand(uint UpperBound) {
-	uint ix2 = dist->operator()(rd);
-	return ix2 % UpperBound;
-}
-
+/* Quick and Dirty and slow, since my previous hack, didn't work*/
 std::string* Calculator2E30::ItoA()
 {
-	Calculator c;
-	BInt  t10;
-	BInt2E30 t2;
-	Pop(t2);
-	Convert2E30to10E9(t10, t2);
-	c.Push(t10);
-	return c.ItoA();
+#define FORMATSTRING2E30 "%09d"
+
+	char buffer[12];
+	std::string* s = new std::string();
+	int  f = 0;
+	if (stack.size() > 0) {
+		do {
+			Push(1000000000);
+			QuotientRemainder();
+			f = stack.back()->number[0];
+			sprintf(buffer, FORMATSTRING2E30, f);
+			char* c1 = buffer;
+			char* c2 = buffer + 8;
+			while (c1 < c2)
+			{
+				char t = *c1;
+				*c1 = *c2;
+				*c2 = t;
+				c1++; c2--;
+			}
+
+			s->append(buffer);
+
+			Pop();
+		} while (!IsEqual(0));
+
+		while (s->size() && (s->back() == '0')) s->pop_back();
+		if (s->size() == 0) s->append("0");
+		if (stack.back()->sign == -1) s->append("-");
+		stack.pop_back();
+		std::reverse(s->begin(), s->end());
+		return s;
+	}
+	s->append("Empty Stack");
+	return s;
 
 }
 
