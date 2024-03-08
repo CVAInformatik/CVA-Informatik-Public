@@ -18,6 +18,7 @@ If this is what you want to do, use the GNU Library General Public License inste
 #include <algorithm>
 #include <iostream>
 #include <map>
+#include "PrimeFactorDFT.h"
 
 typedef  struct _BInt2E30
 {
@@ -28,7 +29,11 @@ typedef  struct _BInt2E30
 
 typedef std::shared_ptr<BInt2E30> BInt2E30Ptr;
 
-#include "CalcUtil.h"
+#define SMALLNUMBERLIMIT 1 
+//#define DUMPINT(x,y) DumpInt(x,y)
+#define DUMPINT(x,y) 
+
+//#include "CalcUtil.h"
 
 
 
@@ -47,7 +52,7 @@ public:
 	inline void Pop() { if (stack.size() > 0) stack.pop_back(); };  //remove TOS 
 	inline void Pop(BInt2E30& b) { if (stack.size() > 0) { Dup(b, *stack.back());	stack.pop_back(); } };  //remove TOS leave a copy in b
 	void Swap();  // interchange the two top-most items on stack
-	inline void Dup() { if (stack.size() > 0) stack.push_back(stack.back()); };  // push a copy of TOS on Stack
+	void Dup();  // push a copy of TOS on Stack
 	inline void Clear() { stack.clear(); }; // if you want a fresh stack. The Store is not changed
 
 	/* ASCII Conversions    */
@@ -90,18 +95,16 @@ public:
 	inline void ClearStore() { Store.clear(); };// clear all locations
 
 	/*  Various Predicates */
-	int  TOSStatus();//Does not modify the stack return -1,0,1 if the TOS element is respectively negative, zero or postive 
+	//int  TOSStatus();//Does not modify the stack return -1,0,1 if the TOS element is respectively negative, zero or postive 
 	int  TOSSize();//Does not modify the stack return the size of the TOS BInt 
 	bool IsLarger();//Does not modify the stack true if TOS is larger than the number below. 
 	bool IsEqual();//Does not modify the stack true if TOS is equal to number below. 
-	bool IsZero();// Does not modify the stack true if TOS is equal to zero
-	bool IsOne();// Does not modify the stack true if TOS is equal to 1
-	bool IsMinusOne();// Does not modify the stack true if TOS is equal to -1
+	bool IsEqual(int n);// oes not modify the stack true if TOS is equal to number below. 
 	bool IsEven();// Does not modify the stack true if TOS is even
 
 	/* other */
-	inline int  StackSize() { return  (int)stack.size(); }; // how deep is the stack...
-	inline int  StoreSize() { return  (int)Store.size(); }; // how many items in the store...
+	int  StackSize(); // how deep is the stack...
+	int  StoreSize(); // how many items in the store...
 
 	// for internal use......
 	void dumpStack(int p);
@@ -109,7 +112,7 @@ public:
 private:
 	std::vector<BInt2E30Ptr> stack;
 	std::map<std::string, BInt2E30Ptr> Store;
-	bool IsZero(BInt2E30 arg);
+	bool IsZero(const BInt2E30&  arg);
 	bool IsAbiggerNummerically(BInt2E30Ptr A, BInt2E30Ptr B);
 	bool IsAbiggerNummerically(BInt2E30 A, BInt2E30 B);
 	bool IsEqual(BInt2E30 A, BInt2E30 B);

@@ -6,13 +6,13 @@
 #include "Calculator2E30.h"
 
 
-#ifdef CAL10
-#define CALCULATOR Calculator 
-#define BINT BInt
-#else
-#define CALCULATOR Calculator2E30 
-#define BINT BInt2E30
-#endif
+//#ifdef CAL10
+//#define CALCULATOR Calculator 
+//#define BINT BInt
+//#else
+//#define CALCULATOR Calculator2E30 
+//#define BINT BInt2E30
+//#endif
 
 
 void ModularExponentiation(BINT& Res, const BINT& a, const BINT& exp, const BINT& mod);
@@ -40,3 +40,8 @@ void Convert10E9to2E30(BInt2E30& dest, BInt& src);
 void Convert2E30to10E9(BInt& dest, BInt2E30& src);
 
 void MersenneBInt2E20(BInt2E30& dest, uint N);
+
+
+std::string* ItoA(Calculator& cal);
+
+std::string* ItoA(Calculator2E30& cal);

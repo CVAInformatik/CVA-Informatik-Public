@@ -59,7 +59,8 @@ public:
 	inline void Pop() { if (stack.size() > 0) stack.pop_back(); };  //remove TOS 
 	inline void Pop(BInt &b) {	if (stack.size() > 0) {	Dup(b, *stack.back());	stack.pop_back();}};  //remove TOS leave a copy in b
 	void Swap();  // interchange the two top-most items on stack
-	inline void Dup() { if (stack.size() > 0) stack.push_back(stack.back()); };  // push a copy of TOS on Stack
+	void Dup();  // push a copy of TOS on Stack
+
 	inline void Clear() { stack.clear(); }; // if you want a fresh stack. The Store is not changed
 	
 	/* ASCII Conversions    */
@@ -102,18 +103,16 @@ public:
 	inline void ClearStore() {	Store.clear();	};// clear all locations
 	
 	/*  Various Predicates */
-	int  TOSStatus();//Does not modify the stack return -1,0,1 if the TOS element is respectively negative, zero or postive 
+	//int  TOSStatus();//Does not modify the stack return -1,0,1 if the TOS element is respectively negative, zero or postive 
 	int  TOSSize();//Does not modify the stack return the size of the TOS BInt 
 	bool IsLarger() ;//Does not modify the stack true if TOS is larger than the number below. 
 	bool IsEqual();//Does not modify the stack true if TOS is equal to number below. 
-	bool IsZero();// Does not modify the stack true if TOS is equal to zero
-	bool IsOne();// Does not modify the stack true if TOS is equal to 1
-	bool IsMinusOne();// Does not modify the stack true if TOS is equal to -1
+	bool IsEqual(int n);//Does not modify the stack true if TOS is equal to n
 	bool IsEven();// Does not modify the stack true if TOS is even
 	
 	/* other */
-	inline int  StackSize() { return  (int)stack.size(); }; // how deep is the stack...
-	inline int  StoreSize() { return  (int)Store.size(); }; // how many items in the store...
+	int  StackSize(); // how deep is the stack...
+	int  StoreSize(); // how many items in the store...
 	
 	// for internal use......
 	void dumpStack(int);
@@ -121,7 +120,7 @@ public:
 private:
 	std::vector<BIntPtr> stack;
 	std::map<std::string, BIntPtr> Store;
-	bool IsZero(BInt arg);
+	bool IsZero(const BInt &arg);
 	bool IsAbiggerNummerically(BIntPtr A, BIntPtr B );
 	bool IsAbiggerNummerically(BInt A, BInt B);
 	bool IsEqual(BInt A, BInt B);
