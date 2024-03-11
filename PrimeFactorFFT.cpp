@@ -838,24 +838,39 @@ void test13QuotientReminder()
 void test14Exp()
 {
     CALCULATOR c;
+    std::string* s;
+    c.Push(2);
+    c.Push(8624);
+    c.Exp();
+    c.Push(-1);
+    c.Add();
+    s = c.ItoA();
+    std::cout << "length:   " << s->length() << "   Exp " << *s << std::endl;
+
+
     c.Push(2);
     c.Push(86243);
     c.Exp();
     c.Push(-1);
     c.Add();
-    std::cout << "Exp " << *c.ItoA() << std::endl;
+    s = c.ItoA();
+    std::cout << "length:   " << s->length() << "   Exp " << *s << std::endl;
+
     c.Push(2);
     c.Push(13466917);
     c.Exp();
     c.Push(-1);
     c.Add();
-   // std::cout << "Exp " << *c.ItoA() << std::endl;
+    s = c.ItoA();
+    std::cout << "length:   " << s->length() << "   Exp " << *s << std::endl;
+
     c.Push(2);
     c.Push(20996011);
     c.Exp();
     c.Push(-1);
     c.Add();
-  //  std::cout << "Exp " << *c.ItoA() << std::endl << std::endl;
+    s = c.ItoA();
+    std::cout << "length:   " << s->length() << "   Exp " << *s << std::endl;
 
 }
 
@@ -890,8 +905,8 @@ void test15Jacobi()
 }
 
 
-bool MillerRabin(BInt& number);
-bool MillerRabin(BInt& number, const std::vector<unsigned int>& witnesses);
+//bool MillerRabin(BInt& number);
+//bool MillerRabin(BInt& number, const std::vector<unsigned int>& witnesses);
 
 
 void test16MillerRabin(char c[]) {
@@ -1255,9 +1270,105 @@ void test22()
 void test23()
 {
     CALCULATOR cal;
-    
+#ifdef PERF
+    LARGE_INTEGER StartingTime, EndingTime, ElapsedMicroseconds;
+    LARGE_INTEGER Frequency;
+#endif
+
+
+
     cal.Push((char *) "293619494913165487615161600641311312659");
     std::cout << " : " << *cal.ItoA() << std::endl;
+
+    std::string* s;
+
+#define astr "1234567890"
+    char cstring[] =
+        astr astr astr astr astr \
+        astr astr astr astr astr \
+        astr astr astr astr astr \
+        astr astr astr astr astr;
+
+    char* cptr = cstring;
+    while (*cptr) {
+        cal.Push(cptr);
+        printf("               Exp  %s\n", cptr);
+        s = cal.ItoA();
+        printf("length: %4d   Exp  %s\n", (int)s->length(), s->c_str());
+        cptr++;
+    }
+
+
+    for (int i = 0; i < 20; i++) {
+        cal.Push(100001);
+        cal.Push(i + 1);
+        cal.Exp();
+        s = cal.ItoA();
+        printf("length:  %4d   Exp  %s\n", (int)s->length(), s->c_str());
+        //std::cout << "length:   " << s->length() << "   Exp " << *s << std::endl;
+    }
+
+    cal.Push(2);
+    cal.Push(86);
+    cal.Exp();
+    cal.Push(-1);
+    cal.Add();
+    s = cal.ItoA();
+    std::cout << "length:   " << s->length() << "   Exp " << *s << std::endl;
+
+    for (int i = 0; i < 50; i++) {
+        cal.Push(2);
+        cal.Push(862);
+        cal.Push(i);
+        cal.Add();
+        cal.Exp();
+        //cal.Rand();
+        s = cal.ItoA();
+        std::cout << "length:   " << s->length() << "   Exp " << *s << std::endl;
+    }
+
+    cal.Push(2);
+    cal.Push(8624);
+    cal.Exp();
+    cal.Push(-1);
+    cal.Add();
+#ifdef PERF
+    QueryPerformanceFrequency(&Frequency);
+    QueryPerformanceCounter(&StartingTime);
+#endif
+
+    s = cal.ItoA();
+#ifdef PERF
+    QueryPerformanceCounter(&EndingTime);
+    ElapsedMicroseconds.QuadPart = EndingTime.QuadPart - StartingTime.QuadPart;
+    ElapsedMicroseconds.QuadPart *= 1000000;
+    ElapsedMicroseconds.QuadPart /= Frequency.QuadPart;
+    std::cout << "Elapsed time(microseconds) : " << ElapsedMicroseconds.QuadPart << std::endl;
+#endif
+
+    std::cout << "length:   " << s->length() << "   Exp " << *s << std::endl;
+
+
+    cal.Push(2);
+    cal.Push(86243);
+    cal.Exp();
+    cal.Push(-1);
+    cal.Add();
+#ifdef PERF
+    QueryPerformanceFrequency(&Frequency);
+    QueryPerformanceCounter(&StartingTime);
+#endif
+
+    s = cal.ItoA();
+#ifdef PERF
+    QueryPerformanceCounter(&EndingTime);
+    ElapsedMicroseconds.QuadPart = EndingTime.QuadPart - StartingTime.QuadPart;
+    ElapsedMicroseconds.QuadPart *= 1000000;
+    ElapsedMicroseconds.QuadPart /= Frequency.QuadPart;
+    std::cout << "Elapsed time(microseconds) : " << ElapsedMicroseconds.QuadPart << std::endl;
+#endif
+    std::cout << "length:   " << s->length() << "   Exp " << *s << std::endl;
+
 
 }
 
@@ -1286,9 +1397,9 @@ int main()
     //test18();
     //Factoring((char*)"2147483649");
     //test19();
-    test20();
+    //test20();
     //test21();
     //test22();
-    //test23();
+    test23();
     std::cout << "Done !\n";
 }

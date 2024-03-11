@@ -239,6 +239,8 @@ void Calculator2E30::QuotientRemainder() {
 		BInt2E30Ptr _dividend(new BInt2E30); Dup(*_dividend, dividend);
 		BInt2E30Ptr _divisor(new BInt2E30);  Dup(*_divisor, divisor);
 
+		if (reciprocal == 0)
+			std::cout << "Ooops" << std::endl;
 		stack.push_back(_reciprocal);
 		stack.push_back(_dividend);
 		//dumpStack(1);
@@ -489,16 +491,35 @@ void Calculator2E30::DumpInt(std::string name, const BInt2E30& arg) {
 
 
 /* Quick and Dirty and slow, since my previous hack, didn't work*/
-std::string* Calculator2E30::ItoA()
+void  Calculator2E30::InitDivisors()
 {
-#define FORMATSTRING2E30 "%09d"
 
-	char buffer[12];
-	std::string* s = new std::string();
-	int  f = 0;
-	if (stack.size() > 0) {
+#define DS 9
+	Push(1000000000);
+	ItoADivisors[9] = stack.back();	    Dup();	Mul();
+	ItoADivisors[18] = stack.back();	Dup();	Mul();
+	ItoADivisors[36] = stack.back();	Dup();	Mul();
+	ItoADivisors[72] = stack.back();	Dup();	Mul();
+	ItoADivisors[144] = stack.back();	Dup();	Mul();
+	ItoADivisors[288] = stack.back();	Dup();	Mul();
+	ItoADivisors[576] = stack.back();	Dup();	Mul();
+	ItoADivisors[1152] = stack.back();	Dup();	Mul();
+	ItoADivisors[2304] = stack.back();	Dup();	Mul();
+	ItoADivisors[4608] = stack.back();	Dup();	Mul();
+	ItoADivisors[9216] = stack.back();	Dup();	Mul();
+	ItoADivisors[18432] = stack.back();
+	stack.pop_back();
+}
+#define FORMATSTRING2E30 "%09d"
+#define SIZELIMIT 3000
+#define ILIMIT 18
+void Calculator2E30::ItoAAux(int l, std::string *s )
+{
+	if (l == ILIMIT) {
+		char buffer[12];
+		int f;
 		do {
-			Push(1000000000);
+			stack.push_back(ItoADivisors[9]);
 			QuotientRemainder();
 			f = stack.back()->number[0];
 			sprintf(buffer, FORMATSTRING2E30, f);
@@ -511,20 +532,51 @@ std::string* Calculator2E30::ItoA()
 				*c2 = t;
 				c1++; c2--;
 			}
-
 			s->append(buffer);
-
+			Pop();
+		} while (!IsEqual(0));
+		return;
+	}
+	else
+		do {
+			stack.push_back(ItoADivisors[l]);
+			QuotientRemainder();
+			ItoAAux(l / 2, s);
+			while (!IsEqual(0) && (s->length() % l) != 0)
+				s->append("0");
 			Pop();
 		} while (!IsEqual(0));
 
+
+}
+
+std::string* Calculator2E30::ItoA()
+{
+	if (ItoADivisors.size() == 0) InitDivisors();
+	BInt2E30Ptr arg = stack.back();
+	std::string* s = new std::string();
+
+	if ((stack.size() > 0) && (stack.back()->number.size() < SIZELIMIT))
+	{
+		int index = 18432;
+		while (index > ILIMIT) {
+			if (ItoADivisors[index]->number.size() >= stack.back()->number.size())
+				index = index / 2;
+			else
+				break;
+		}
+		ItoAAux(index, s);
+		stack.pop_back();
+
 		while (s->size() && (s->back() == '0')) s->pop_back();
 		if (s->size() == 0) s->append("0");
-		if (stack.back()->sign == -1) s->append("-");
-		stack.pop_back();
+		if (arg->sign == -1) s->append("-");
 		std::reverse(s->begin(), s->end());
 		return s;
-	}
-	s->append("Empty Stack");
+
+    }
+	if ((stack.size() == 0)) s->append("Empty Stack");
+	else s->append("Argument too Large (> 90000 bit)");
 	return s;
 
 }

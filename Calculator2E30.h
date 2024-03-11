@@ -33,10 +33,6 @@ typedef std::shared_ptr<BInt2E30> BInt2E30Ptr;
 //#define DUMPINT(x,y) DumpInt(x,y)
 #define DUMPINT(x,y) 
 
-//#include "CalcUtil.h"
-
-
-
 //  RMOD == 2^30
 #define RMOD     0x40000000
 #define RMODMASK 0xC0000000
@@ -111,6 +107,7 @@ public:
 
 private:
 	std::vector<BInt2E30Ptr> stack;
+
 	std::map<std::string, BInt2E30Ptr> Store;
 	bool IsZero(const BInt2E30&  arg);
 	bool IsAbiggerNummerically(BInt2E30Ptr A, BInt2E30Ptr B);
@@ -143,4 +140,9 @@ private:
 	uint  _Rand(uint UpperBound); // _Rand returns a number in the range 0..UpperBound - 1
 	std::random_device rd;
 	std::uniform_int_distribution<uint>* dist;
+	/* ItoA relates stuff */
+	void  InitDivisors();
+	void ItoAAux(int l, std::string *s);
+	std::map<int, BInt2E30Ptr> ItoADivisors;
+
 };
