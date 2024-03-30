@@ -25,6 +25,7 @@ If this is what you want to do, use the GNU Library General Public License inste
 #include "PrimeTable.h"
 #include "CalcUtil.h"
 #include "Calculator2E30.h"
+#include "EllipticCurve.h"
 
 
 static std::random_device rd;
@@ -1371,6 +1372,173 @@ void test23()
 
 
 }
+/*
+
+   Polynomial multiplication  modulo X^7 -1
+
+*/
+
+void test24()
+{
+    PrimeFactorDFT pf;
+
+    factorSeq  factors;
+
+    std::cout << "Test24 begin " << std::endl;
+
+    factors.push_back(7);
+
+    pf.SetFactors(factors);
+    std::cout << "status " << pf.Status() << std::endl;
+
+    if (pf.Status() > 0) {
+
+        Data* real = new Data[pf.Status()];
+        Data* imag = new Data[pf.Status()];
+
+        Data* real1 = new Data[pf.Status()];
+        Data* imag1 = new Data[pf.Status()];
+
+        for (int i = 0; i < pf.Status(); i++) {
+            real[i] = real1[i] = imag[i] = imag1[i] = 0.0;
+        }
+
+        real[0] = 3;
+        real[1] = 4;
+        real[2] = 2;
+        real[3] = 1;
+
+        real1[0] = 2;
+        real1[1] = 5;
+        real1[2] = 4;
+        real1[3] = 2;
+        real1[4] = 1;
+
+        pf.forwardFFT(real, imag);
+        pf.forwardFFT(real1, imag1);
+
+
+        for (int i = 0; i < pf.Status(); i++) {
+            double re = (real[i] * real1[i]) - (imag[i] * imag1[i]);
+            double im = (real[i] * imag1[i]) + (real1[i] * imag[i]) ;
+            real[i] = re;
+            imag[i] = im;
+        }
+
+
+        pf.ScaledInverseFFT(real, imag);
+
+
+        for (int i = 0; i < pf.Status(); i++)
+            std::cout << i << " " << real[i] << "  " << imag[i] << std::endl;
+
+        delete[] real;
+        delete[] imag;
+        delete[] real1;
+        delete[] imag1;
+    }
+
+    for (int j = 0; j < 7; j++) {
+        std::cout << std::endl << "j  " << j << std::endl << std::endl;
+        if (pf.Status() > 0) {
+
+            Data* real = new Data[pf.Status()];
+            Data* imag = new Data[pf.Status()];
+
+            Data* real1 = new Data[pf.Status()];
+            Data* imag1 = new Data[pf.Status()];
+
+            for (int i = 0; i < pf.Status(); i++) {
+                real[i] = real1[i] = imag[i] = imag1[i] = 0.0;
+            }
+
+            real[0] = 3;
+            real[1] = 4;
+            real[2] = 2;
+            real[3] = 1;
+
+            real1[j % 7] = 1;
+            real1[(j + 1) % 7] = 1;
+            real1[(j + 2) % 7] = 1;
+
+            pf.forwardFFT(real, imag);
+            pf.forwardFFT(real1, imag1);
+
+
+            for (int i = 0; i < pf.Status(); i++) {
+                double re = (real[i] * real1[i]) - (imag[i] * imag1[i]);
+                double im = (real[i] * imag1[i]) + (real1[i] * imag[i]);
+                real[i] = re;
+                imag[i] = im;
+            }
+
+
+            pf.ScaledInverseFFT(real, imag);
+
+            for (int i = 0; i < pf.Status(); i++)
+                std::cout << i << " " << real[i] << "  " << imag[i] << std::endl ;
+
+            std::cout << std::endl << std::endl;
+            delete[] real;
+            delete[] imag;
+            delete[] real1;
+            delete[] imag1;
+        }
+    }
+
+    std::cout << "Test24 end " << std::endl << std::endl;
+
+}
+
+/*
+  We try to evaluate the polynomium:  1 + X + 3X^3  mod 11
+  for a geometric  sequence  e, er, er^2, er^3, er^4...
+  lets begin with e = 1 and r = 2
+                             1,2,4,8,16
+
+   some basic numbers  (all is modulo 11)
+
+     a      a^2        a^-1     a^-3    a^-6
+     0      0           n.a     n.a.    n.a
+     1      1           1       1       1
+     2      4           6       7       5
+     3      9           4       9       4
+     4      5           3       5       3
+     5      3           9       3       9
+     6      3           2       8       9
+     7      5           8       4       5
+     8      9           7       2       4
+     9      4           5       4       5
+     10     1           10      10      1
+
+
+
+   y0 = a0 * r^-0    = 1
+   y1 = a1 * r^-1    = 6
+   y2 = a2 * r^-3    = 0
+   y3 = a3 * r^-6    = 5
+*/
+/*
+void test25()
+{
+    ResidueClass RC;
+
+    PrimeFactorDFT fft;
+
+    factorSeq  factors;
+
+    fft.CalcFactors(1000, factors, 4);
+
+    std::string  text = " 83264826X^10 - 23917X^2 + 27713X  + 9212937";
+
+    RC.Setup((char *)   "100000000", 100000);
+
+    PolynomialasResidue  PR(text, RC);
+
+    std::cout << "Test25 end " << std::endl << std::endl;
+
+}
+*/
 
 int main()
 {
@@ -1400,6 +1568,8 @@ int main()
     //test20();
     //test21();
     //test22();
-    test23();
+    //test23();
+    test24();
+    //test25();
     std::cout << "Done !\n";
 }

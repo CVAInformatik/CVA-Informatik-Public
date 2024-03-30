@@ -662,6 +662,8 @@ public:
 
 	void GetFactors(factorSeq& _factors) {_factors = factors;};
 
+	int CalcFactors(uint length, factorSeq& _factors, int factorCount = 0);
+
 	/*
 	*  Based of the factors provided.
 	*  if > 0 the length of the FFT.

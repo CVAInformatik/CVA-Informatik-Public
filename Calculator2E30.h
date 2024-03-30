@@ -52,7 +52,7 @@ public:
 	inline void Clear() { stack.clear(); }; // if you want a fresh stack. The Store is not changed
 
 	/* ASCII Conversions    */
-	void Push(char* c);  // push integer in ascii on stack
+	void Push( char* c);  // push integer in ascii on stack
 	std::string* ItoA(); // pop TOS and return  as a string
 	std::string* PrintTOS() { Dup(); return ItoA(); }; // non-destructive print of TOS 
 
@@ -97,6 +97,7 @@ public:
 	bool IsEqual();//Does not modify the stack true if TOS is equal to number below. 
 	bool IsEqual(int n);// oes not modify the stack true if TOS is equal to number below. 
 	bool IsEven();// Does not modify the stack true if TOS is even
+	int  LeastDigit();// returns the least significant digit of TOS, usefull in a number of applications.
 
 	/* other */
 	int  StackSize(); // how deep is the stack...

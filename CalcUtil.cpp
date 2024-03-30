@@ -452,3 +452,136 @@ void MersenneBInt2E20(BInt2E30& dest, uint N)
 
 }
 
+/* 
+
+     Performs a FFT based multiplikation, inputs X and Y results in X.
+
+     Reduces the reals modulo mod, clears the imags before any FFT( but not after) 
+
+*/
+
+void ReducedFFTMult( PrimeFactorDFT& pf, double* Xreals, double* Ximags, double* Yreals, double* Yimags)
+{
+
+    if (pf.Status() > 0) {
+
+
+        CALCULATOR cal;
+
+        /* let us define the CRT factors   */
+
+        uint factor[] = { 1031, 1033, 1039 };// should work both for Radix 2^30 and Radix 10^9
+        BINT mods[3]; // modules
+        BINT invs[3]; //inverses
+        cal.Push(factor[1]);
+        cal.Push(factor[2]);
+        cal.Mul(); cal.PrintTOS();std::cout << std::endl;
+        cal.Pop(mods[0]);
+        cal.Push(mods[0]);
+        cal.Push(factor[0]);
+        cal.GCD();cal.PrintTOS();std::cout << std::endl;
+        cal.Pop();cal.PrintTOS();std::cout << std::endl;
+        cal.Pop(invs[0]);cal.PrintTOS();std::cout << std::endl;
+
+        cal.Push(factor[0]);
+        cal.Push(factor[2]);
+        cal.Mul(); cal.PrintTOS(); std::cout << std::endl;
+        cal.Pop(mods[1]);
+        cal.Push(mods[1]);
+        cal.Push(factor[1]);
+        cal.GCD();cal.PrintTOS();std::cout << std::endl;
+        cal.Pop();cal.PrintTOS();std::cout << std::endl;
+        cal.Pop(invs[1]);cal.PrintTOS();std::cout << std::endl;
+
+        cal.Push(factor[0]);
+        cal.Push(factor[1]);
+        cal.Mul(); cal.PrintTOS();std::cout << std::endl;
+        cal.Pop(mods[2]);
+        cal.Push(mods[2]);
+        cal.Push(factor[2]);
+        cal.GCD();cal.PrintTOS();std::cout << std::endl;
+        cal.Pop();cal.PrintTOS();std::cout << std::endl;
+        cal.Pop(invs[2]);cal.PrintTOS();std::cout << std::endl;
+
+        Data* real0 = new Data[pf.Status()];
+        Data* real1 = new Data[pf.Status()];
+        Data* real2 = new Data[pf.Status()];
+        Data* real3 = new Data[pf.Status()];
+        Data* imagX = new Data[pf.Status()];
+        Data* realY = new Data[pf.Status()];
+        Data* imagY = new Data[pf.Status()];
+
+        for (int i = 0; i < pf.Status(); i++)
+        {
+                real0[i] = Xreals[i];
+                realY[i] = Yreals[i];
+                imagX[i] = imagY[i] = 0.0;
+        }
+        ReducedFFTMultAux(factor[0], pf, real0, imagX, realY, imagY);
+
+        for (int i = 0; i < pf.Status(); i++)
+        {
+            real1[i] = Xreals[i];
+            realY[i] = Yreals[i];
+            imagX[i] = imagY[i] = 0.0;
+        }
+        ReducedFFTMultAux(factor[1], pf, real1, imagX, realY, imagY);
+
+        for (int i = 0; i < pf.Status(); i++)
+        {
+            real2[i] = Xreals[i];
+            realY[i] = Yreals[i];
+            imagX[i] = imagY[i] = 0.0;
+        }
+        ReducedFFTMultAux(factor[2], pf, real2, imagX, realY, imagY);
+
+
+
+    }
+
+}
+
+
+
+
+MulModN::MulModN(std::string* N){}
+MulModN::~MulModN(){}
+
+void MulModN::setFactor1(std::string* f1){}
+void MulModN::SetFactor2(std::string* f2){}
+BINT* MulModN::result() { return NULL; }
+
+
+void ReducedFFTMultAux( u64 mod, PrimeFactorDFT& pf, double *Xreals, double *Ximags, double* Yreals, double* Yimags)
+{
+
+    if (pf.Status() > 0) {
+
+
+        
+
+
+        for (uint s = 0; s < pf.Status(); s++) {
+            Xreals[s] = (double) (((uint) Xreals[s]) % mod);
+            Yreals[s] = (double) (((uint) Yreals[s]) % mod);
+            Ximags[s] = Yimags[s] = 0.0;
+        }
+
+
+        pf.forwardFFT(Xreals, Ximags);
+        pf.forwardFFT(Yreals, Yimags);
+
+        for (int i = 0; i < pf.Status(); i++) {
+            double re = (Xreals[i] * Yreals[i]) - (Ximags[i] * Yimags[i]);
+            double im = (Xreals[i] * Yimags[i]) + (Yreals[i] * Ximags[i]);
+            Xreals[i] = (double)((uint)re % mod);
+            Ximags[i] = (double)((uint)im % mod);
+        }
+        pf.ScaledInverseFFT(Xreals, Ximags);
+
+    }
+
+    for (int i = 0; i < pf.Status(); i++)  Xreals[i] = (double)((uint)Xreals[i] % mod);
+    
+
+}

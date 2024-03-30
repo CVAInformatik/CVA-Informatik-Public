@@ -22,6 +22,7 @@ Inspiration originally from
 
 
 #include <iostream>
+#include <list>
 #include "PrimeFactorDFT.h"
 
 s64 PrimeFactorDFT::ValidateFactors(factorSeq& _factors)
@@ -129,6 +130,62 @@ void PrimeFactorDFT::ScaledInverseFFT(Data* real, Data *imag)
 		imag[i] /= state;
 	}
 };
+
+
+int PrimeFactorDFT::CalcFactors(uint length, factorSeq& _factors, int factorCount)
+{
+    std::list<unsigned int> lengthList;
+
+
+    for(int ix = 0; ix < 512; ix++) {
+
+        int hw = 0;
+        if (factorCount) {
+            int it = ix;
+            while (it) {
+                it = it & (it - 1);
+                hw++;
+            }
+        }
+        if (factorCount && ( hw > factorCount)) continue;
+
+        uint tlength = 1;
+        if (ix & 1) tlength *= 2;
+        if (ix & 2) tlength *= 3;
+        if (ix & 4) tlength *= 5;
+        if (ix & 8) tlength *= 7;
+        if (ix & 16) tlength *= 11;
+        if (ix & 32) tlength *= 13;
+        if (ix & 64) tlength *= 17;
+        if (ix & 128) tlength *= 19;
+        if (ix & 256) tlength *= 31;
+        lengthList.push_back(tlength);
+    }
+    lengthList.sort();
+
+    uint actualLength = 0;
+    _factors.clear();
+
+    for (std::list<unsigned int>::const_iterator ibegin = lengthList.begin(); 1 ; ibegin++)
+        if (ibegin == lengthList.end())  return -1;        
+        else if (*ibegin >= length)
+        {
+            actualLength = *ibegin;
+            break;
+        }
+
+    if ((actualLength % 2 )== 0) _factors.push_back(2);
+    if ((actualLength % 3) == 0) _factors.push_back(3);
+    if ((actualLength % 5) == 0) _factors.push_back(5);
+    if ((actualLength % 7) == 0) _factors.push_back(7);
+    if ((actualLength % 11) == 0) _factors.push_back(11);
+    if ((actualLength % 13) == 0) _factors.push_back(13);
+    if ((actualLength % 17) == 0) _factors.push_back(17);
+    if ((actualLength % 19) == 0) _factors.push_back(19);
+    if ((actualLength % 31) == 0) _factors.push_back(31);
+
+    return actualLength;
+}
 
 
 /*

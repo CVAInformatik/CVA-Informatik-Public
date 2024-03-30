@@ -191,6 +191,11 @@ int CALCULATOR::TOSSize() {
 	return 0;
 }
 
+int CALCULATOR::LeastDigit() {
+	if (stack.size() > 0) return (int)stack.back()->number[0];
+	return 0;
+}
+
 
 /* other */
 int  CALCULATOR::StackSize() { return  (int)stack.size(); }; // how deep is the stack...

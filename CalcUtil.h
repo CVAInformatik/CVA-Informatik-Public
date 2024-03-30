@@ -6,15 +6,6 @@
 #include "Calculator2E30.h"
 
 
-//#ifdef CAL10
-//#define CALCULATOR Calculator 
-//#define BINT BInt
-//#else
-//#define CALCULATOR Calculator2E30 
-//#define BINT BInt2E30
-//#endif
-
-
 void ModularExponentiation(BINT& Res, const BINT& a, const BINT& exp, const BINT& mod);
 
 void ModularMultiplication(BINT& ab, const BINT& a, const BINT& b, const BINT& mod);
@@ -45,3 +36,22 @@ void MersenneBInt2E20(BInt2E30& dest, uint N);
 std::string* ItoA(Calculator& cal);
 
 std::string* ItoA(Calculator2E30& cal);
+
+void ReducedFFTMult(PrimeFactorDFT& pf, double* Xreals, double* Ximags, double* Yreals, double* Yimags);
+
+void ReducedFFTMultAux(u64 mod, PrimeFactorDFT& pf, double* Xreals, double* Ximags, double* Yreals, double* Yimags);
+
+
+class MulModN
+{
+public:
+
+	MulModN(std::string* N);
+	~MulModN();
+
+	void setFactor1(std::string* f1);
+	void SetFactor2(std::string* f2);
+	BINT* result();
+
+
+};

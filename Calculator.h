@@ -109,7 +109,7 @@ public:
 	bool IsEqual();//Does not modify the stack true if TOS is equal to number below. 
 	bool IsEqual(int n);//Does not modify the stack true if TOS is equal to n
 	bool IsEven();// Does not modify the stack true if TOS is even
-	
+	int  LeastDigit();// returns the least significant digit of TOS, usefull in a number of applications.
 	/* other */
 	int  StackSize(); // how deep is the stack...
 	int  StoreSize(); // how many items in the store...
