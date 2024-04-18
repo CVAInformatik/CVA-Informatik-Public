@@ -1,11 +1,12 @@
 #pragma once
 
 /* define if you want Radix 10^9 undefine if you want Radix 2^30 */
-//#define CAL10
+#define CAL10
 
 // for performance measurements on Windows10
+#ifdef OS_WINDOWS
 //#define PERF
-
+#endif
 
 
 #ifdef CAL10

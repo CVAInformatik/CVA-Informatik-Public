@@ -20,18 +20,22 @@ If this is what you want to do, use the GNU Library General Public License inste
 #include <map>
 #include "PrimeFactorDFT.h"
 
-typedef  struct _BInt2E30
-{
-	int sign;
-	std::vector<int>  number;
-	_BInt2E30() { sign = 1; number.clear(); };
-} BInt2E30;
+//typedef  struct _BInt2E30
+//{
+//	int sign;
+//	std::vector<int>  number;
+//	_BInt2E30() { sign = 1; number.clear(); };
+//} BInt2E30;
+//
+//typedef std::shared_ptr<BInt2E30> BInt2E30Ptr;
 
+#define SIGNMASK  0x80000000
+typedef std::vector<int> BInt2E30;
 typedef std::shared_ptr<BInt2E30> BInt2E30Ptr;
 
+
+
 #define SMALLNUMBERLIMIT 1 
-//#define DUMPINT(x,y) DumpInt(x,y)
-#define DUMPINT(x,y) 
 
 //  RMOD == 2^30
 #define RMOD     0x40000000
@@ -116,7 +120,7 @@ private:
 	bool IsEqual(BInt2E30 A, BInt2E30 B);
 	bool IsALarger(BInt2E30 A, BInt2E30 B);
 
-	void AddAux(int Asign, BInt2E30& A, int Bsign, const BInt2E30& B);
+	void AddAux(unsigned int Asign, BInt2E30& A, unsigned int Bsign, const BInt2E30& B);
 
 	/* Schönhage-Strassen Helpers */
 	void LoadFFT(BInt2E30Ptr A, Data* Buffer);

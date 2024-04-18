@@ -11,15 +11,9 @@ This General Public License does not permit incorporating your program into prop
 If this is what you want to do, use the GNU Library General Public License instead of this License.
 */
 
+//#define DUMPINT(x,y) DumpInt(x,y)
+#define DUMPINT(x,y) 
 
-//
-//CALCULATOR::CALCULATOR() {
-//	dist = new std::uniform_int_distribution<uint>(0, RMOD - 1);
-//}
-//
-//CALCULATOR::~CALCULATOR() {
-//	delete dist;
-//}
 
 void CALCULATOR::Dup() { 
 	if (stack.size() > 0) {
@@ -29,25 +23,86 @@ void CALCULATOR::Dup() {
 };  // push a copy of TOS on Stack
 
 
+
+bool CALCULATOR::IsALarger(BINT A, BINT B)
+{
+	if (IsAbiggerNummerically(A, B))
+		if ((A[0] & SIGNMASK) == 0) return true;
+		else return false;
+	else
+		if ((A[0] & SIGNMASK) == SIGNMASK) return true;
+		else return false;
+	return false;
+}
+
+
+bool CALCULATOR::IsAbiggerNummerically(BINT A, BINT B)
+{
+	if (!IsZero(A) && IsZero(B)) return true;
+	if (IsZero(A) && IsZero(B)) return false;
+	if (IsZero(A) && !IsZero(B)) return false;
+	if (A.size() > B.size()) return true;
+	if (A.size() < B.size()) return false;
+	/* they are equal in size */
+	for (u64 i = A.size(); i > 0; i--) {
+		if ((A[i - 1] & ~SIGNMASK) > (B[i - 1] & ~SIGNMASK)) return true;
+		else if ((A[i - 1] & ~SIGNMASK) < (B[i - 1] & ~SIGNMASK)) return false;
+	}
+	return false;
+}
+
+bool CALCULATOR::IsLarger() {
+	size_t sz = stack.size();
+	if (sz < 2)
+		std::cout << "IsLarger(): not enough arguments" << std::endl;
+	else
+	{
+		if (((stack[sz - 1]->at(0) & SIGNMASK) == 0) && ((stack[sz - 2]->at(0) & SIGNMASK) != 0)) return true;
+		if (((stack[sz - 1]->at(0) & SIGNMASK) == 0) && ((stack[sz - 2]->at(0) & SIGNMASK) == 0))
+			return IsAbiggerNummerically(stack[sz - 1], stack[sz - 2]);
+		if (((stack[sz - 1]->at(0) & SIGNMASK) != 0) && ((stack[sz - 2]->at(0) & SIGNMASK) != 0))
+			return IsAbiggerNummerically(stack[sz - 2], stack[sz - 1]);
+	}
+	return false;
+}
+
+
+
 bool CALCULATOR::IsEven()
 {
-	if (stack.size() > 0) 	return ((stack.back()->number[0] & 1) == 0);
+	if (stack.size() > 0) 	
+		return (stack.back()->size() == 0 ) || (stack.back()->at(0) & 1) == 0;
 	return false;
 }
 
 bool CALCULATOR::IsEqual(int n)
 {
-	if (stack.size() > 0) 	
-		return  (stack.back()->number.size() ==1 ) && (n == (stack.back()->number[0] * (stack.back()->sign)));
+	if (stack.size() > 0) {
+
+		if (stack.back()->size() == 0) return n == 0;
+		if ((n < 0) && ((stack.back()->at(0) & SIGNMASK) == 0)) return false;
+		if ((n >= 0) && ((stack.back()->at(0) & SIGNMASK) != 0)) return false;
+		/* they have the same sign */
+		unsigned int t = 0;
+		if (n < 0)  
+			t = -n;
+		else 
+			t = n;
+		return  (stack.back()->size() == 1) && (t == (stack.back()->at(0)& ~SIGNMASK ));
+	}
 	return false;
 }
 
 /* does not require a normalized BINT ! */
 bool CALCULATOR::IsZero(const BINT &arg)
 {
-	int num = 0;
-	for (unsigned int i = 0; !num && (i < arg.number.size()); i++)	num |= arg.number[i];
-	return num == 0;
+	if (arg.size() == 0) 
+		return true;
+	else {
+		int num = 0;
+		for (unsigned int i = 0; !num && (i < arg.size()); i++)	num |= arg[i];
+		return num == 0;
+	}
 }
 
 
@@ -65,10 +120,10 @@ bool CALCULATOR::IsEqual() {
 
 bool CALCULATOR::IsEqual(BINT A, BINT B)
 {
-	if (A.sign != B.sign) return false;
-	if (A.number.size() != B.number.size()) return false;
-	for (size_t i = 0; i < A.number.size(); i++)
-		if (A.number[i] != B.number[i]) return false;
+	if ((A[0] ^ B[0]) & SIGNMASK) return false;  // different signs
+	if (A.size() != B.size()) return false; //different sizes
+	for (size_t i = 0; i < A.size(); i++)
+		if (A[i] != B[i]) return false;  //different value
 	return true;
 }
 
@@ -101,14 +156,14 @@ void CALCULATOR::Swap()
 
 void CALCULATOR::Push(char* c) {
 	BINT temp;
+	unsigned int sign = 0;
 	char* ct1, * ct2;
 
 	ct1 = ct2 = c;
-	temp.sign = 1;
 
 	while (isspace(*ct1)) ct1++;
 	if (*ct1 == '-') {
-		temp.sign = -1;
+		sign = SIGNMASK;
 		ct1++;
 	}
 	ct2 = ct1;
@@ -118,8 +173,7 @@ void CALCULATOR::Push(char* c) {
 		std::cerr << "unknown format " << c << std::endl;
 	}
 	// we assume we have something number like 
-	temp.number.clear();
-	temp.number.push_back(0);
+	temp.clear();
 	int tempInt = 0;
 	int counter = 0;
 	while (isdigit(*ct1)) {
@@ -129,7 +183,7 @@ void CALCULATOR::Push(char* c) {
 		ct1++;
 		if (counter == 3) {
 			Push(tempInt);
-			SimpleAdditionSubtractionLadder1(1, 1000, 1, temp);
+			SimpleAdditionSubtractionLadder1(0, 1000, 0, temp);
 			Add();
 			Pop(temp);
 			counter = tempInt = 0;
@@ -138,33 +192,38 @@ void CALCULATOR::Push(char* c) {
 	switch (counter) {
 	case 1:
 		Push(tempInt);
-		SimpleAdditionSubtractionLadder1(1, 10, 1, temp);
+		SimpleAdditionSubtractionLadder1(0, 10, 0, temp);
 		Add();
 		Pop(temp);
 		break;
 	case 2:
 		Push(tempInt);
-		SimpleAdditionSubtractionLadder1(1, 100, 1, temp);
+		SimpleAdditionSubtractionLadder1(0, 100, 0, temp);
 		Add();
 		Pop(temp);
 		break;
 	default: break;
 	}
 	Normalize(temp);
+	if (temp.size()) temp[0] |= sign;
 	Push(temp);
 }
 
 
 void CALCULATOR::Push(int i) {
-	BINTPTR temp(new BINT); temp->number.clear();
+	BINTPTR temp(new BINT); temp->clear();
 	s64 it = i;
-	temp->sign = (it >= 0) ? 1 : -1;
+	unsigned int sign = 0;
+	sign = (it >= 0) ? 0 : SIGNMASK;
 
-	if (it < 0) it = -1 * i;
-	do {
-		temp->number.push_back(it % (s64)RMOD);
-		it = it / RMOD;
-	} while (it > 0);
+	if (it != 0) {
+		if (it < 0) it = -1 * i;
+		do {
+			temp->push_back(it % (s64)RMOD);
+			it = it / RMOD;
+		} while (it > 0);
+		if (temp->size()) temp->at(0) |= sign;
+	}
 	stack.push_back(temp);
 }
 
@@ -179,7 +238,7 @@ void CALCULATOR::Push(const BINT& b)
 void CALCULATOR::ChangeSign() {
 	if (stack.size() > 0) {
 		BINTPTR temp(new BINT); Pop(*temp);
-		temp->sign = -1 * temp->sign;
+		if(temp->size()) temp->at(0)=  SIGNMASK ^ temp->at(0);
 		stack.push_back(temp);
 	}
 
@@ -187,12 +246,12 @@ void CALCULATOR::ChangeSign() {
 
 
 int CALCULATOR::TOSSize() {
-	if (stack.size() > 0) return (int)stack.back()->number.size();
+	if (stack.size() > 0) return (int)stack.back()->size();
 	return 0;
 }
 
 int CALCULATOR::LeastDigit() {
-	if (stack.size() > 0) return (int)stack.back()->number[0];
+	if (stack.size() > 0) return stack.back()->size() ? (int)( stack.back()->at(0) & ~SIGNMASK) : 0;
 	return 0;
 }
 
@@ -232,36 +291,37 @@ void CALCULATOR::PopStore(const std::string& loc)
 
 void CALCULATOR::Dup(BINT& D, const BINT& S)
 {
-	D.number.clear();
-	D.sign = S.sign;
-	for (int ix = 0; ix < S.number.size(); ix++)
-		D.number.push_back(S.number[ix]);
+	D.clear();
+	for (int ix = 0; ix < S.size(); ix++) 	D.push_back(S[ix]);
 }
 
 void CALCULATOR::Normalize(BINT& b) {
-	while (b.number.size() && b.number.back() == 0) b.number.pop_back();
-	if (b.number.size() == 0) {
-		b.number.push_back(0);
-		b.sign = 1;
-	}
+	while (b.size() && b.back() == 0) b.pop_back();
 }
 
 
 void CALCULATOR::Mul2(BINT& A) {
 	int carry = 0;
 
-	for (int ix = 0; ix < A.number.size(); ix++)
+	uint sign = 0;
+	if (A.size()) {
+		sign = A[0] ;
+		A[0] &= ~SIGNMASK;
+	}
+	for (int ix = 0; ix < A.size(); ix++)
 	{
-		int t = (A.number[ix] << 1) + carry;
+		int t = (A[ix] << 1) + carry;
 		carry = 0;
 		if (t >= RMOD) {
 			carry = 1;
 			t -= RMOD;
 		}
-		A.number[ix] = t;
+		A[ix] = t;
 	}
+	if (carry) A.push_back(carry);
 
-	if (carry) A.number.push_back(carry);
+	if (A.size())  A[0] |= (sign & SIGNMASK );
+
 }
 
 
@@ -273,7 +333,10 @@ void CALCULATOR::Add() {
 
 		Dup(*temp, *stack.back());
 		stack.pop_back();
-		AddAux(temp->sign, *temp, stack.back()->sign, *stack.back());
+		AddAux(temp->size() ? temp->at(0) & SIGNMASK : 0, 
+			   *temp, 
+			stack.back()->size() ? stack.back()->at(0) & SIGNMASK : 0,
+			*stack.back());
 		stack.pop_back();
 		Normalize(temp);
 		stack.push_back(temp);
@@ -288,7 +351,7 @@ void CALCULATOR::SimpleAdditionSubtractionLadder1(int sign, s64 A, int BSign, co
 		/* this is taken from Crandall& Pomerance
 		*   "Prime Numbers,  A Computational Perspective" 2nd edition
 		*/
-		BINTPTR result(new BINT); result->number.clear();result->number.push_back(0);
+		BINTPTR result(new BINT); 
 
 		s64 A3 = A * 3;
 		s64 A1 = A;
@@ -307,16 +370,16 @@ void CALCULATOR::SimpleAdditionSubtractionLadder1(int sign, s64 A, int BSign, co
 			Mul2(*result);
 			if (Mask & (A3EXORA1)) {
 				if (Mask & A3) {
-					AddAux(1, *result, 1, B);
+					AddAux(0, *result, 0, B);
 				}
 				else {
-					AddAux(1, *result, -1, B);
+					AddAux(0, *result, 1, B);
 				}
 			}
 			Mask = Mask >> 1;
 		}
 		Normalize(*result);
-		if (!IsZero(*result)) result->sign = sign;
+		if (result->size()  && sign) result->at(0) |= SIGNMASK;
 
 		stack.push_back(result);
 	}
@@ -328,13 +391,15 @@ void CALCULATOR::SimpleAdditionSubtractionLadder1(int sign, s64 A, int BSign, co
 void CALCULATOR::Div2(BINT& A) {
 
 	int borrow = 0;
-	for (s64 ix = A.number.size() - 1; ix >= 0; ix--)
+	uint sign = A.size() ? A[0] & SIGNMASK : 0;
+	for (s64 ix = A.size() - 1; ix >= 0; ix--)
 	{
-		int t = A.number[ix] + borrow; borrow = 0;
+		int t = A[ix] + borrow; borrow = 0;
 		if (t & 1)  borrow = RMOD;
-		A.number[ix] = t >> 1;
+		A[ix] = t >> 1;
 	}
-	while (A.number.size() && A.number.back() == 0) A.number.pop_back();
+	while (A.size() && A.back() == 0) A.pop_back();
+	if (A.size()) A[0] |= sign;
 }
 
 void CALCULATOR::Exp()
@@ -344,10 +409,10 @@ void CALCULATOR::Exp()
 	else {
 		BINT    Exponent;  Pop(Exponent);
 		BINTPTR Argument(new BINT); Pop(*Argument);
-		BINTPTR  Result(new BINT); Result->number.push_back(1);
+		BINTPTR  Result(new BINT); Result->push_back(1);
 		stack.push_back(Result);
 		while (!IsZero(Exponent)) {
-			if (Exponent.number.size() && Exponent.number[0] & 1) {
+			if (Exponent.size() && Exponent[0] & 1) {
 				stack.push_back(Argument);
 				Mul();
 			}
@@ -378,26 +443,34 @@ void CALCULATOR::RussianPeasantMult() {
 	if (IsZero(x) || IsZero(y))
 	{
 		BINTPTR result(new BINT());
-		result->number.push_back(0);
-		result->sign = 1;
 		stack.push_back(result);
 
 	}
 	else {
 		s64 xint = 0;
 		s64 yint = 0;
+		int Xsign;
+		int Ysign;
 
-		if (x.number.size() < 1 + SMALLNUMBERLIMIT)
-			for (s64 ix = x.number.size(); ix > 0;ix--)
-				xint = (xint * RMOD) + x.number[ix - 1];
-		if (y.number.size() < 1 + SMALLNUMBERLIMIT)
-			for (s64 iy = y.number.size(); iy > 0;iy--)
-				yint = (yint * RMOD) + y.number[iy - 1];
+		Xsign = x[0] & SIGNMASK;
+		x[0] = x[0] & ~SIGNMASK;
 
-		if (yint == 0)  		SIMPLEMULT(x.sign * y.sign, xint, y.sign, y);
-		else if (xint == 0)     SIMPLEMULT(y.sign * x.sign, yint, x.sign, x);
-		else if (xint < yint) 	SIMPLEMULT(x.sign * y.sign, xint, y.sign, y);
-		else                	SIMPLEMULT(y.sign * x.sign, yint, x.sign, x);
+		Ysign = y[0] & SIGNMASK;
+		y[0] = y[0] & ~SIGNMASK;
+
+		if (x.size() < 1 + SMALLNUMBERLIMIT)
+			for (s64 ix = x.size(); ix > 0;ix--)
+				xint = (xint * RMOD) + x[ix - 1];
+		if (y.size() < 1 + SMALLNUMBERLIMIT)
+			for (s64 iy = y.size(); iy > 0;iy--)
+				yint = (yint * RMOD) + y[iy - 1];
+
+
+
+		if (yint == 0)  		SIMPLEMULT(Xsign, xint, Ysign, y);
+		else if (xint == 0)     SIMPLEMULT(Ysign, yint, Xsign, x);
+		else if (xint < yint) 	SIMPLEMULT(Xsign, xint, Ysign, y);
+		else                	SIMPLEMULT(Ysign, yint, Xsign, x);
 	}
 }
 
@@ -413,12 +486,32 @@ the code below is adapted from
 /*
   The Asign and Bsign parameters are normally A and B real signs, but sometimes we
   want to overrule that.
+
+  Asign == 0 if positive else > 0
+  Bsign == 0 if positive else > 0
 */
 
-void CALCULATOR::AddAux(int Asign, BINT& A, int Bsign, const BINT& B)
+void CALCULATOR::AddAux(unsigned Asign, BINT& A, unsigned int  Bsign, const BINT& B)
 {
 	/* setup  */
-	u64 min_sz = std::min(A.number.size(), B.number.size());
+	if (B.size() == 0) // Are we adding zero 
+		if (A.size()) {
+			A[0] &= ~SIGNMASK;
+			if (Asign > 0) A[0] |= SIGNMASK;//A is negative now
+			return;
+		}
+		else return;
+
+	if (A.size() == 0) // Are we adding to a zero 
+	{
+		// we know B <> 0 !
+		for (int i = 0; i < B.size(); i++) A.push_back(B[i]);
+		A[0] &= ~SIGNMASK;
+		if (Bsign != 0)  A[0] |= SIGNMASK;//A is negative now
+		return;
+	}
+
+	u64 min_sz = std::min(A.size(), B.size());
 
 	if (Asign == Bsign)
 	{
@@ -429,23 +522,27 @@ void CALCULATOR::AddAux(int Asign, BINT& A, int Bsign, const BINT& B)
 		*/
 
 		/* step 1: add the other number, it may be longer or shorter than temp */
-		for (u64 i = 0; i < min_sz; i++)  A.number[i] = A.number[i] + B.number[i];
+		A[0] = (A[0] &  ~SIGNMASK) + (B[0] & ~SIGNMASK); //remove sign from A
 
-		for (u64 i = min_sz; i < B.number.size(); i++)	A.number.push_back(B.number[i]);
+		for (u64 i = 1; i < min_sz; i++)  A[i] = A[i] + B[i];
 
-		/* step 3 */
+		for (u64 i = min_sz; i < B.size(); i++)	A.push_back(B[i]);
+
 		int carry = 0;
-		for (u64 i = 0; i < A.number.size(); i++)
+		for (u64 i = 0; i < A.size(); i++)
 		{
-			A.number[i] += carry;
-			if (A.number[i] >= RMOD) {
-				A.number[i] -= RMOD;
+			A[i] += carry;
+			if (A[i] >= RMOD) {
+				A[i] -= RMOD;
 				carry = 1;
 			}
 			else
 				carry = 0;
 		}
-		if (carry) A.number.push_back(carry);
+		if (carry) A.push_back(carry);
+
+		if (Asign != 0 ) /*negative */
+			A[0] |= SIGNMASK;
 	}
 	else
 	{
@@ -459,25 +556,30 @@ void CALCULATOR::AddAux(int Asign, BINT& A, int Bsign, const BINT& B)
 		*/
 
 		/* step 1: negate digits in the negative number, which is TOS,  and save them in temp  */
-		if (Asign == -1) {
-			A.sign = 1;
-			for (u64 i = 0; i < A.number.size(); i++) A.number[i] = -1 * A.number[i];
-			for (u64 i = 0; i < min_sz; i++)  A.number[i] = A.number[i] + B.number[i];
-			for (u64 i = min_sz; i < B.number.size(); i++)	A.number.push_back(B.number[i]);
+		A[0] &= ~SIGNMASK; //remove sign from A
+
+		if ( Asign != 0) {
+			for (u64 i = 0; i < A.size(); i++) A[i] = -1 * A[i];
+			A[0] = A[0] + (B[0] & ~SIGNMASK);
+			for (u64 i = 1; i < min_sz; i++)  A[i] = A[i] + B[i];
+			for (u64 i = min_sz; i < B.size(); i++)	A.push_back(B[i]);
 		}
 		else { /* Bsign == -1 */
-			for (u64 i = 0; i < min_sz; i++)  A.number[i] = A.number[i] - B.number[i];
-			for (u64 i = min_sz; i < B.number.size(); i++)	A.number.push_back(-B.number[i]);
+			A[0] = A[0] - (B[0] & ~SIGNMASK);
+			for (u64 i = 1; i < min_sz; i++)  A[i] = A[i] - B[i];
+			for (u64 i = min_sz; i < B.size(); i++)	A.push_back(-B[i]);
 		}
+
+		while (A.size() && A.back() == 0) A.pop_back(); // maybe we ended up with a net Zero ?? Good place to check for thís
 
 		/* step 3: now adjust carry/borrow and mod */
 		int c = 0;
-		for (int i = 0; i < A.number.size(); i++)
+		for (int i = 0; i < A.size(); i++)
 		{
-			A.number[i] += c;
-			if (A.number[i] < 0) {
+			A[i] += c;
+			if (A[i] < 0) {
 				c = -1;
-				A.number[i] += RMOD;
+				A[i] += RMOD;
 			}
 			else
 				c = 0;
@@ -485,18 +587,18 @@ void CALCULATOR::AddAux(int Asign, BINT& A, int Bsign, const BINT& B)
 
 		/* step 4: final correction if c is set */
 		if (c != 0) {
-			A.sign = -1;
 			int c1 = 0;
-			for (int i = 0; i < A.number.size(); i++)
+			for (int i = 0; i < A.size(); i++)
 			{
-				A.number[i] = 0 - A.number[i] + c1;
-				if (A.number[i] < 0) {
+				A[i] = 0 - A[i] + c1;
+				if (A[i] < 0) {
 					c1 = -1;
-					A.number[i] += RMOD;
+					A[i] += RMOD;
 				}
 				else
 					c1 = 0;
 			}
+			A[0] |= SIGNMASK;
 		}
 	}
 }
@@ -507,12 +609,13 @@ void CALCULATOR::Jacobi()
 	if (stack.size() < 2)
 		std::cout << "Jacoby/Legendre  needs two arguments" << std::endl;
 	else {
-		BINTPTR Res(new BINT); Res->number.clear();
+		BINTPTR Res(new BINT); Res->clear();
 		BINTPTR A(new BINT); Pop(*A);
 		BINTPTR M(new BINT); Pop(*M);
-		if ((M->number.size() == 1) && (M->number[0] == 1))
+		int ResSign = 1;
+		if ((M->size() == 1) && (M->at(0) == 1))
 		{
-			Res->number.clear(); Res->number.push_back(1); Res->sign = 1;
+			Res->clear(); Res->push_back(1);
 			stack.push_back(Res);
 			return;
 		}
@@ -523,19 +626,19 @@ void CALCULATOR::Jacobi()
 			Mod();
 			if (IsZero(*stack.back())) {  //A|M 
 				stack.pop_back();
-				Res->number.push_back(0); Res->sign = 1;
+				Res->clear();
 				stack.push_back(Res);
 			}
 			else {
 				Pop(*A); //reminder of A mod M
-				Res->number.push_back(1); Res->sign = 1;
+				//Res->clear(); Res->push_back(1);
 				while (!IsZero(*A)) {
-					while ((A->number[0] & 1) == 0)
+					while ((A->at(0) & 1) == 0)
 					{
 						Div2(*A);
-						switch (M->number[0] & 0x7)
+						switch (M->at(0) & 0x7)
 						{
-						case 3: case 5:   Res->sign = -1 * Res->sign;
+						case 3: case 5:   ResSign = -ResSign;
 							break;
 						default:
 							break;
@@ -545,20 +648,25 @@ void CALCULATOR::Jacobi()
 					Dup(temp, *A);
 					Dup(*A, *M);
 					Dup(*M, temp);
-					if ((3 == (A->number[0] & 0x3)) && (3 == (M->number[0] & 0x3)))
-						Res->sign = -1 * Res->sign;
+					if ((3 == (A->at(0) & 0x3)) && (3 == (M->at(0) & 0x3)))
+						ResSign = -ResSign;
 					stack.push_back(A);
 					stack.push_back(M);
 					Mod();
 					Pop(*A);
 				}
-				if ((M->number.size() == 1) && (M->number[0] == 1))  stack.push_back(Res);
+				if ((M->size() == 1) && (M->at(0) == 1)) { 
+					Res->clear(); 
+					Res->push_back(1);
+					if (ResSign < 0)  
+						Res->at(0) |= SIGNMASK;
+				}
 				else
 				{
-					Res->number.clear(); Res->number.push_back(0); Res->sign = 1;
-					stack.push_back(Res);
-					return;
+					Res->clear();
 				}
+				stack.push_back(Res);
+				return;
 			}
 		}
 	}
@@ -574,35 +682,37 @@ void CALCULATOR::GCDAux(BINTPTR X, BINTPTR Y)
 	BINT y;  		Dup(y, *Y);
 
 	/* remove common 1000 factors */
-	u64 min_sz = std::min(x.number.size(), y.number.size());
+	u64 min_sz = std::min(x.size(), y.size());
 	int i = 0;
 	for (u64 i = 0; i < min_sz; i++)
-		if ((x.number[i] | y.number[i]) == 0)  i++; /* counter #1000 */
+		if (((x[i]&SIGNMASK) | (y[i] & SIGNMASK)) == 0)  i++; /* counter #1000 */
 		else break;
 
 	/* then remove them and update g */
 	for (int i2 = 0; i2 < i; i2++)  /* then remove them and update g */
 	{
-		g.number.push_back(0);
+		g.push_back(0);
 		DIVRMOD(x); DIVRMOD(y);
 	}
-	g.number.push_back(1);
+	g.push_back(1);
 
 
 	/* copy to temps*/
 	BINT u; Dup(u, x);
 	BINT v; Dup(v, y);
 
+	u[0] = u[0] & ~SIGNMASK;
+	v[0] = v[0] & ~SIGNMASK;
 	/* remove common 2 factors */
-	while ((u.number[0] & 1) == 0 && (v.number[0] & 1) == 0)
+	while ((u[0] & 1) == 0 && (v[0] & 1) == 0)
 	{
 		Div2(u); Div2(v); Mul2(g);
 	};
 
-	BINT A; A.number.push_back(1);
-	BINT B; B.number.push_back(0);
-	BINT C; C.number.push_back(0);
-	BINT D; D.number.push_back(1);
+	BINT A; A.push_back(1);
+	BINT B; 
+	BINT C; 
+	BINT D; D.push_back(1);
 
 	while (!IsZero(u)) {
 		//std::cout << "-----------------------------------" << std::endl;
@@ -610,10 +720,10 @@ void CALCULATOR::GCDAux(BINTPTR X, BINTPTR Y)
 		DUMPINT("B", B);		DUMPINT("C", C);		DUMPINT("D", D);
 		//std::cout << "-----------------------------------" << std::endl;
 
-		while ((u.number[0] & 1) == 0)
+		while ((u[0] & 1) == 0)
 		{
 			Div2(u); DUMPINT("u", u);
-			if ((A.number[0] & 1) == 0 && (B.number[0] & 1) == 0) {
+			if ((A[0] & 1) == 0 && (B[0] & 1) == 0) {
 				DUMPINT("A", A);
 				Div2(A); DUMPINT("B", B);
 				Div2(B);
@@ -627,10 +737,10 @@ void CALCULATOR::GCDAux(BINTPTR X, BINTPTR Y)
 			}
 		}
 
-		while ((v.number[0] & 1) == 0) {
+		while ((v[0] & 1) == 0) {
 			DUMPINT("v", v);
 			Div2(v); DUMPINT("v", v);
-			if ((C.number[0] & 1) == 0 && (D.number[0] & 1) == 0) {
+			if (((C.size() == 0) || (C[0] & 1) == 0) && ((D.size() == 0) || (D[0] & 1) == 0)) {
 				DUMPINT("C", C);
 				Div2(C);  DUMPINT("D", D);
 				Div2(D);

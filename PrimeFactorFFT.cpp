@@ -442,6 +442,61 @@ void test5perf()
 void test6Calc()
 {
     CALCULATOR c;
+
+    /* test of add */
+#define ADDS 1
+    c.Push(0);     c.Push(ADDS);     c.Add();     PRINT(c);
+    c.Push(ADDS);  c.Push(0);    c.Add();    PRINT(c);
+    c.Push(0);     c.Push(ADDS);     c.Add();    PRINT(c);
+    c.Push(0); c.Push(0);    c.Add();    PRINT(c);
+
+#define ADDS 1
+    c.Push(0);     c.Push(ADDS);     c.Add();     PRINT(c);
+    c.Push(-1 * ADDS);  c.Push(0);    c.Add();    PRINT(c);
+    c.Push(0);     c.Push(-1 * ADDS);     c.Add();    PRINT(c);
+    c.Push(0); c.Push(0);    c.Add();    PRINT(c);
+
+#undef ADDS 
+
+#undef ADDS 
+#define ADDS 1
+    c.Push(ADDS);     c.Push(ADDS);     c.Add();     PRINT(c);
+    c.Push(-1 * ADDS);  c.Push(ADDS);    c.Add();    PRINT(c);
+    c.Push(ADDS);     c.Push(-1 * ADDS);     c.Add();    PRINT(c);
+    c.Push(-1 * ADDS); c.Push(-1 * ADDS);    c.Add();    PRINT(c);
+
+#undef ADDS 
+
+#define ADDS 1000
+    c.Push(ADDS);     c.Push(ADDS);     c.Add();     PRINT(c);
+    c.Push(-1 * ADDS);  c.Push(ADDS);    c.Add();    PRINT(c);
+    c.Push(ADDS);     c.Push(-1 * ADDS);     c.Add();    PRINT(c);
+    c.Push(-1 * ADDS); c.Push(-1 * ADDS);    c.Add();    PRINT(c);
+
+#undef ADDS 
+#define ADDS 999999999
+    c.Push(ADDS);     c.Push(ADDS);     c.Add();     PRINT(c);
+    c.Push(-1 * ADDS);  c.Push(ADDS);    c.Add();    PRINT(c);
+    c.Push(ADDS);     c.Push(-1 * ADDS);     c.Add();    PRINT(c);
+    c.Push(-1 * ADDS); 
+    c.Push(-1 * ADDS);    
+    c.Add();    
+    PRINT(c);
+
+#undef ADDS 
+#define ADDS 1000000000
+    c.Push(ADDS);     c.Push(ADDS);     c.Add();     PRINT(c);
+    c.Push(-1 * ADDS);  c.Push(ADDS);    c.Add();    PRINT(c);
+    c.Push(ADDS);     c.Push(-1 * ADDS);     c.Add();    PRINT(c);
+    c.Push(-1 * ADDS); c.Push(-1 * ADDS);    c.Add();    PRINT(c);
+
+#undef ADDS 
+#define ADDS -1000000000
+    c.Push(ADDS);     c.Push(ADDS);     c.Add();     PRINT(c);
+    c.Push(-1 * ADDS);  c.Push(ADDS);    c.Add();    PRINT(c);
+    c.Push(ADDS);     c.Push(-1 * ADDS);     c.Add();    PRINT(c);
+    c.Push(-1 * ADDS); c.Push(-1 * ADDS);    c.Add();    PRINT(c);
+
     //char num[] = "261261924691694619461924691649164";
     char num[] = "90000000";
     std::cout << num << std::endl;
@@ -469,6 +524,7 @@ void test6Calc()
     c.Push(num1);
     c.Dup();
     PRINT(c);
+ //   c.Push(10000000);
     c.Mul();
     c.Dup();
     PRINT(c);
@@ -1129,45 +1185,46 @@ void test20()
     QueryPerformanceFrequency(&Frequency);
     QueryPerformanceCounter(&StartingTime);
 #endif
-
-    char Pascii[] = "26959946667150639794667015087019630673557916260026308143510066298881";
-    cal.Push(Pascii);
-    cal.Pop(P);
-    cal.Push(2021);
-    cal.Dup();
-    cal.Dup();
-    cal.Mul();
-    cal.Mul();
-    cal.Push(2021);
-    cal.Push(-3);
-    cal.Mul();
-    cal.Add();
-    char Aascii[] = "18958286285566608000408668544493926415504680968679321075787234672564";
-    cal.Push(Aascii);
-    cal.Add();
-    cal.Pop(A);
-    SquareRootModM(Res, A, P);
+    for (int i = 0; i < 5; i++) {
+        char Pascii[] = "26959946667150639794667015087019630673557916260026308143510066298881";
+        cal.Push(Pascii);
+        cal.Pop(P);
+        cal.Push(2021);
+        cal.Dup();
+        cal.Dup();
+        cal.Mul();
+        cal.Mul();
+        cal.Push(2021);
+        cal.Push(-3);
+        cal.Mul();
+        cal.Add();
+        char Aascii[] = "18958286285566608000408668544493926415504680968679321075787234672564";
+        cal.Push(Aascii);
+        cal.Add();
+        cal.Pop(A);
+        SquareRootModM(Res, A, P);
 #ifdef PERF
-    QueryPerformanceCounter(&EndingTime);
-    ElapsedMicroseconds.QuadPart = EndingTime.QuadPart - StartingTime.QuadPart;
-    ElapsedMicroseconds.QuadPart *= 1000000;
-    ElapsedMicroseconds.QuadPart /= Frequency.QuadPart;
-    std::cout << "Elapsed time(microseconds) : " << ElapsedMicroseconds.QuadPart << std::endl;
+        QueryPerformanceCounter(&EndingTime);
+        ElapsedMicroseconds.QuadPart = EndingTime.QuadPart - StartingTime.QuadPart;
+        ElapsedMicroseconds.QuadPart *= 1000000;
+        ElapsedMicroseconds.QuadPart /= Frequency.QuadPart;
+        std::cout << "Elapsed time(microseconds) : " << ElapsedMicroseconds.QuadPart << std::endl;
 #endif
 
-    cal.Push(A);
-    std::cout << std::endl << " A:   " << *cal.ItoA() << std::endl;
-    cal.Push(P);
-    std::cout << " P:   " << *cal.ItoA() << std::endl;
-    cal.Push(Res);
-    cal.Dup();
-    std::cout << " Res: " << *cal.ItoA() << std::endl;
-    cal.Square();
-    cal.Dup();
-    std::cout << " Res * Res  : " << *cal.ItoA() << std::endl;
-    cal.Push(P);
-    cal.Mod();
-    std::cout << " Res * Res  mod P: " << *cal.ItoA() << std::endl;
+        cal.Push(A);
+        std::cout << std::endl << " A:   " << *cal.ItoA() << std::endl;
+        cal.Push(P);
+        std::cout << " P:   " << *cal.ItoA() << std::endl;
+        cal.Push(Res);
+        cal.Dup();
+        std::cout << " Res: " << *cal.ItoA() << std::endl;
+        cal.Square();
+        cal.Dup();
+        std::cout << " Res * Res  : " << *cal.ItoA() << std::endl;
+        cal.Push(P);
+        cal.Mod();
+        std::cout << " Res * Res  mod P: " << *cal.ItoA() << std::endl;
+    }
     return;
 
 #else 
@@ -1218,7 +1275,7 @@ void test21()
     QueryPerformanceCounter(&StartingTime);
 #endif
 
-    Faculty(res, arg);
+//    Faculty(res, 5);
 #ifdef PERF
     QueryPerformanceCounter(&EndingTime);
     ElapsedMicroseconds.QuadPart = EndingTime.QuadPart - StartingTime.QuadPart;
@@ -1226,6 +1283,13 @@ void test21()
     ElapsedMicroseconds.QuadPart /= Frequency.QuadPart;
     std::cout <<  "Elapsed time(microseconds) : " << ElapsedMicroseconds.QuadPart << std::endl;
 #endif
+    Faculty(res, 5);
+    cal.Push(res);
+    std::cout << "res  " << *cal.ItoA() << std::endl;
+    Faculty(res, 20);
+    cal.Push(res);
+    std::cout << "res  " << *cal.ItoA() << std::endl;
+    Faculty(res, 50);
     cal.Push(res);
     std::cout << "res  " << *cal.ItoA() << std::endl;
 }
@@ -1518,27 +1582,7 @@ void test24()
    y2 = a2 * r^-3    = 0
    y3 = a3 * r^-6    = 5
 */
-/*
-void test25()
-{
-    ResidueClass RC;
 
-    PrimeFactorDFT fft;
-
-    factorSeq  factors;
-
-    fft.CalcFactors(1000, factors, 4);
-
-    std::string  text = " 83264826X^10 - 23917X^2 + 27713X  + 9212937";
-
-    RC.Setup((char *)   "100000000", 100000);
-
-    PolynomialasResidue  PR(text, RC);
-
-    std::cout << "Test25 end " << std::endl << std::endl;
-
-}
-*/
 
 int main()
 {
@@ -1547,29 +1591,28 @@ int main()
     //test3Convolution();
     //test4();
     //test5perf();
-    //test6Calc();
-    //test7Calc();
-    //test8Calc();
-    //test9Calc();
-    //test10Calc();
-    //test11CalcGCD();
-    //test12CalcSmall();
-    //test13QuotientReminder();
-    //test14Exp();
-    //test15Jacobi();
-    //test17();
-    //test16MillerRabin((char*)"2147483647");// Mersenne Prime
-    //test16MillerRabin((char *) "1228467");
-    //test16MillerRabin((char*)"333228469");
-    //test16MillerRabin((char*)"19777122847");
-    //test18();
-    //Factoring((char*)"2147483649");
-    //test19();
-    //test20();
+    test6Calc();
+    test7Calc();
+    test8Calc();
+    test9Calc();
+    test10Calc();
+    test11CalcGCD();
+    test12CalcSmall();
+    test13QuotientReminder();
+    test14Exp();
+    test15Jacobi();
+    test17();
+    test16MillerRabin((char*)"2147483647");// Mersenne Prime
+    test16MillerRabin((char *) "1228467");
+    test16MillerRabin((char*)"333228469");
+    test16MillerRabin((char*)"19777122847");
+    test18();
+    Factoring((char*)"2147483649");
+    test19();
+    test20();
     //test21();
     //test22();
     //test23();
-    test24();
-    //test25();
+    //test24();
     std::cout << "Done !\n";
 }

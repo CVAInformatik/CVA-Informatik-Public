@@ -85,7 +85,7 @@ void SquareRootModPrime(BINT& Res, BINT& A, BINT& M)
         return;
     }
     /* we assume M is prime now */
-    if ((M.number[0] % 4) == 3) {
+    if ((M[0] % 4) == 3) {
         cal.Push(M);
         cal.Push(1);
         cal.Add();
@@ -106,6 +106,16 @@ void SquareRootModM(BINT& Res, BINT& A, BINT& Mod)
     BINT Q;
     BINT M;
     BINT P;
+
+    cal.Push(Mod);
+    cal.Dup();
+    std::cout << "Mod " << *cal.ItoA() << std::endl;
+    cal.Push(A);
+    cal.Dup();
+    std::cout << "A   " << *cal.ItoA() << std::endl;
+    cal.ChangeSign();  // Debug 
+    cal.Add();
+    std::cout << "Mod res  " << *cal.ItoA() << std::endl;
 
     cal.Push(Mod);
     cal.Push(A);
@@ -144,6 +154,7 @@ void SquareRootModM(BINT& Res, BINT& A, BINT& Mod)
     BINT b, temp1;
 
     do {
+        cal.Clear();
         cal.Push(P);
         cal.Dup();
         cal.Rand();
@@ -390,15 +401,16 @@ void Convert10E9to2E30(BInt2E30& dest, BInt& src)
         cal.PushStore("_2E15");
         cal.QuotientRemainder();
         cal.Pop(temp);
-        temp1.number.push_back(temp.number[0]);
+        temp1.push_back(temp[0]);
     } while (!cal.IsEqual(0));
 
-    if ((temp1.number.size() % 2) == 1) temp1.number.push_back(0);
+    if ((temp1.size() % 2) == 1) temp1.push_back(0);
 
-    for (int i = 0; i < temp1.number.size(); i = i + 2)
-        dest.number.push_back( temp1.number[i] | (temp1.number[i + 1] << 15));
+    for (int i = 0; i < temp1.size(); i = i + 2)
+        dest.push_back( temp1[i] | (temp1[i + 1] << 15));
 
-    dest.sign = src.sign;
+    if(dest.size() && src.size())     dest[0] |= (src[0] & SIGNMASK);
+
 }
 
 void Convert2E30to10E9(BInt& dest, BInt2E30&  src)
@@ -408,10 +420,10 @@ void Convert2E30to10E9(BInt& dest, BInt2E30&  src)
     BInt  temp1;
 
     /* first convert to radix 2E15, so we can use the calculator */
-    for (int i = 0; i < src.number.size(); i = i++)
+    for (int i = 0; i < src.size(); i = i++)
     {
-        temp.number.push_back(src.number[i] & 0x7FFF);
-        temp.number.push_back((src.number[i]>>15) & 0x7FFF);
+        temp.push_back(src[i] & 0x7FFF);
+        temp.push_back((src[i]>>15) & 0x7FFF);
     }
     cal.Push(2);
     cal.Push(15);
@@ -419,25 +431,24 @@ void Convert2E30to10E9(BInt& dest, BInt2E30&  src)
     cal.PopStore("_2E15");
 
     cal.Push(0);
-    for (u64 i = temp.number.size() ; i > 0; i--)
+    for (u64 i = temp.size() ; i > 0; i--)
     {
         cal.PushStore("_2E15");
         cal.Mul();
-        cal.Push(temp.number[i-1]);
+        cal.Push(temp[i-1]);
         cal.Add();
     }
     cal.Pop(dest);
-    dest.sign = src.sign;
+    if (dest.size() && src.size())     dest[0] |= (src[0] & SIGNMASK);
 }
 
 void MersenneBInt2E20(BInt2E30& dest, uint N)
 {
     uint Nt = N;
-    dest.number.clear();
-    dest.sign = 1;
+    dest.clear();
 
     while (Nt > 30) {
-        dest.number.push_back(0x3FFFFFFF);
+        dest.push_back(0x3FFFFFFF);
         Nt = Nt - 30;
     }
 
@@ -447,7 +458,7 @@ void MersenneBInt2E20(BInt2E30& dest, uint N)
         Nt--;
 
         while (Nt-- > 0)  it = it | it << 1;
-        dest.number.push_back(it);
+        dest.push_back(it);
     }
 
 }

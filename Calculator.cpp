@@ -34,56 +34,13 @@ Calculator::~Calculator() {
 
 #include "CalculatorGeneric.h"
 
-bool Calculator::IsLarger() {
-	size_t sz = stack.size();
-	if (sz < 2)
-		std::cout << "IsLarger(): not enough arguments" << std::endl;
-	else
-	{
-		if ((stack[sz - 1]->sign == 1) && (stack[sz - 2]->sign == -1)) return true;
-		if ((stack[sz - 1]->sign == 1) && (stack[sz - 2]->sign == 1))
-			return IsAbiggerNummerically(stack[sz - 1], stack[sz - 2]);
-		if ((stack[sz - 1]->sign == -1) && (stack[sz - 2]->sign == -1))
-			return IsAbiggerNummerically(stack[sz - 2], stack[sz - 1]);
-	}
-	return false;
-}
-
-
-bool Calculator::IsALarger(BInt A, BInt B)
-{
-	if( IsAbiggerNummerically(A,B))
-		if (A.sign == 1) return true;
-		else return false;
-	else
-		if (A.sign == -1) return true;
-		else return false;
-	return false;
-}
-
-
-bool Calculator::IsAbiggerNummerically(BInt A, BInt B)
-{
-	if (IsZero(A) && IsZero(B)) return false;
-	if (IsZero(A) && !IsZero(B)) return false;
-	if (!IsZero(A) && IsZero(B)) return true;
-	/* they are both positive */
-	if (A.number.size() > B.number.size()) return true;
-	if (A.number.size() < B.number.size()) return false;
-	/* they are equal in size */
-	for (u64 i = A.number.size(); i > 0; i--) {
-		if (A.number[i-1] > B.number[i-1]) return true;
-		if (A.number[i-1] < B.number[i-1]) return false;
-	}
-	return false;
-}
 
 
 void Calculator::Rand(){  // we are not aiming for perfection here.....
 	if (stack.size() > 0) {
 
-		int sz =  DIGITS * (uint)( stack.back()->number.size()-1);
-		int s = stack.back()->number.back();
+		int sz =  DIGITS * (uint)( stack.back()->size()-1);
+		int s = stack.back()->size()? stack.back()->back() : 0;
 
 		if (s == 0) {
 			std::cout << "Zero Argument " << std::endl;
@@ -101,9 +58,9 @@ void Calculator::Rand(){  // we are not aiming for perfection here.....
 		}
 		int size = std::max(1,sz); 
 
-		BIntPtr temp(new BInt); temp->number.clear();
+		BIntPtr temp(new BInt); temp->clear();
 		for (; size >= DIGITS; size = size - DIGITS)
-			temp->number.push_back(_Rand(RMOD)); //  _Rand() returns an integer in the range 0..RMOD-1
+			temp->push_back(_Rand(RMOD)); //  _Rand() returns an integer in the range 0..RMOD-1
 
 
 		int i =  _Rand(RMOD); 
@@ -112,9 +69,9 @@ void Calculator::Rand(){  // we are not aiming for perfection here.....
 			i = i / 10;
 			size++;
 		}
-		i = i% stack.back()->number.back();
+		i = i% stack.back()->back();
 
-		temp->number.push_back(i);
+		temp->push_back(i);
 
 		Normalize(temp);
 
@@ -135,37 +92,37 @@ void Calculator::Div2(unsigned int Power)
 		int C1 = 0;
 		BIntPtr temp(new BInt);
 		Pop(*temp);
-
+		int tempSign = temp->size() ? temp->at(0) : 0;
 		while (_Shift > 9) // RMOD == 2^9 * 5^9
 		{
 			Ctemp = 0;
 			C1 = 0;
-			for (int i = (int) temp->number.size() - 1; i >= 0; i--)
+			for (int i = (int) temp->size() - 1; i >= 0; i--)
 			{
-				Ctemp = temp->number[i] % 512;
-				temp->number[i] = temp->number[i] / 512;
-				temp->number[i] = (C1 * (RMOD / 512)) + temp->number[i];
+				Ctemp = temp->at(i) % 512;
+				temp->at(i) = temp->at(i) / 512;
+				temp->at(i) = (C1 * (RMOD / 512)) + temp->at(i);
 				C1 = Ctemp;
 			}
 			_Shift -= 9;
-			if (temp->number.back() == 0) temp->number.pop_back();
+			if (temp->back() == 0) temp->pop_back();
 		}
 		while (_Shift > 0)
 		{
 			Ctemp = 0;
 			C1 = 0;
-			for (int i = (int) temp->number.size() - 1; i >= 0; i--)
+			for (int i = (int) temp->size() - 1; i >= 0; i--)
 			{
-				Ctemp = temp->number[i] % 2;
-				temp->number[i] = temp->number[i] / 2;
-				temp->number[i] = (C1 * (RMOD /2)) + temp->number[i];
+				Ctemp = temp->at(i) % 2;
+				temp->at(i) = temp->at(i) / 2;
+				temp->at(i) = (C1 * (RMOD /2)) + temp->at(i);
 				C1 = Ctemp;
 			}
 			_Shift--;
-			if (temp->number.back() == 0) temp->number.pop_back();
+			if (temp->size() && temp->back() == 0) temp->pop_back();
 		}
 		Normalize(temp);
-
+		if(temp->size()) temp->at(0) |= (tempSign & SIGNMASK) ;
 		stack.push_back(temp);
 	}
 }
@@ -178,8 +135,8 @@ std::string* Calculator::ItoA()
 	std::string* s = new std::string();
 	if (stack.size() > 0) {
 		BIntPtr o = stack.back(); stack.pop_back();
-		for (int i = 0; i < o->number.size(); i++) {
-			sprintf(buffer, FORMATSTRING, o->number[i]);
+		for (int i = 0; i < o->size(); i++) {
+			sprintf(buffer, FORMATSTRING, (o->at(i)& ~SIGNMASK));
 			char* c1 = buffer;
 			char* c2 = buffer + DIGITS-1;
 			while (c1 < c2)
@@ -193,7 +150,7 @@ std::string* Calculator::ItoA()
 		}
 		while (s->size() && (s->back() == '0')) s->pop_back();
 		if (s->size() == 0) s->append("0");
-		if (o->sign == -1) s->append("-");
+		else if (o->at(0) & SIGNMASK)  s->append("-");
 		std::reverse(s->begin(), s->end());
 		return s;
 	}
@@ -210,20 +167,20 @@ void Calculator::Mul()
 
 	if (stack.size() < 2)
 		std::cout << "Mul() needs two arguments" << std::endl;
-	else if (SMALLNUMBERLIMIT && stack[stack.size() - 1]->number.size() < 1+SMALLNUMBERLIMIT)
+	else if (SMALLNUMBERLIMIT && stack[stack.size() - 1]->size() < 1+SMALLNUMBERLIMIT)
 		RussianPeasantMult();
-	else if (SMALLNUMBERLIMIT && stack[stack.size() - 2]->number.size() < 1+SMALLNUMBERLIMIT)
+	else if (SMALLNUMBERLIMIT && stack[stack.size() - 2]->size() < 1+SMALLNUMBERLIMIT)
 		RussianPeasantMult();
 	else {
 		PrimeFactorDFT pf;
-		BIntPtr temp(new BInt); temp->number.clear();
+		BIntPtr temp(new BInt); temp->clear();
 
-		temp->sign = stack[stack.size() - 1]->sign * stack[stack.size() - 2]->sign;
+		int tempSign = (stack[stack.size() - 1]->at(0)  ^ stack[stack.size() - 2]->at(0)) & SIGNMASK;
 
 		factorSeq  factors;
 
-		u64 min_sz = stack[stack.size() - 1]->number.size() +
-			stack[stack.size() - 2]->number.size();
+		u64 min_sz = stack[stack.size() - 1]->size() +
+			stack[stack.size() - 2]->size();
 
 		u64 Length = 1;
 		
@@ -296,11 +253,11 @@ void Calculator::Mul()
 				int t0 = (int)real1[i];
 				int t1 = 1000 * (int)real1[i+1];  // these values are 0 when we reach
 				int t2 = 1000*1000* (int)real1[i+2];// the end of buffer, due to
-				temp->number.push_back(t0+t1+t2);//OVERALLOCATION
+				temp->push_back(t0+t1+t2);//OVERALLOCATION
 			}
 
 			Normalize(temp);
-
+			if(temp->size()) temp->at(0) |= tempSign;
 			stack.push_back(temp);
 
 			delete[] real1;
@@ -315,8 +272,8 @@ void Calculator::LoadFFT(BIntPtr A, Data* Buffer)
 {
 	int carry = 0;
 	int FFTIndex = 0;
-	for (int ix = 0; ix < A->number.size(); ix++) {
-		int temp = A->number[ix];   // temp is  radix 10^9 
+	for (int ix = 0; ix < A->size(); ix++) {
+		int temp = A->at(ix) & ~SIGNMASK;   // temp is  radix 10^9 
 		for (int i = 0; i < 3; i++) {
 			int tmp = (temp%RMOD3);// tmp is  radix 10^3
 			temp = temp / RMOD3;
@@ -362,23 +319,23 @@ void Calculator::Carry(s64 size, Data* Buffer)
 
 void Calculator::Div1000000000(BInt& A)
 {
-	switch (A.number.size())
+	switch (A.size())
 	{
 	case 0: 
 		break;
 
 	case 1: 
-		A.number.pop_back(); 
-		A.number.push_back(0); 
-		A.sign = 1;
+		A.pop_back(); 
 		break;
 
 	default:
-		for (int ix = 0; A.number.size() && (ix < (A.number.size() - 1)); ix++)
+		int sign = A[0] & SIGNMASK;
+		for (int ix = 0; A.size() && (ix < (A.size() - 1)); ix++)
 		{
-			A.number[ix] = A.number[ix + 1];
+			A[ix] = A[ix + 1];
 		}
-	    A.number.pop_back();
+	    A.pop_back();
+		A[0] |= sign;
 		break;
 	}
 }
@@ -387,8 +344,8 @@ void Calculator::DumpInt(std::string name,  const BInt& arg)
 {
 	char buffer[12];
 	std::string* s = new std::string();
-	for (int i = 0; i < arg.number.size(); i++) {
-		sprintf(buffer, FORMATSTRING, arg.number[i]);
+	for (int i = 0; i < arg.size(); i++) {
+		sprintf(buffer, FORMATSTRING, arg[i] & ~SIGNMASK);
 		char* c1 = buffer;
 		char* c2 = buffer + DIGITS - 1;
 		while (c1 < c2)
@@ -402,7 +359,7 @@ void Calculator::DumpInt(std::string name,  const BInt& arg)
 	}
 	while (s->size() && (s->back() == '0')) s->pop_back();
 	if (s->size() == 0) s->append("0");
-	if (arg.sign == -1) s->append("-");
+	if (arg[0] & SIGNMASK) s->append("-");
 	std::reverse(s->begin(), s->end());
 	std::cout << name <<" : " << *s << " ( " << s->length() << " ) " << std::endl;
 
@@ -410,8 +367,8 @@ void Calculator::DumpInt(std::string name,  const BInt& arg)
 
 void Calculator::QuotientRemainder()
 {
-	BIntPtr Quotient(new BInt); Quotient->number.clear();
-	Quotient->sign = 1;
+	BIntPtr Quotient(new BInt); Quotient->clear();
+	//Quotient->sign = 1;
 
 	int counter = 0;
 
@@ -421,12 +378,12 @@ void Calculator::QuotientRemainder()
 		std::cout << "divison by zero" << std::endl;
 		return;
 	}
-	else if ((stack[stack.size() - 1]->number.size() == 1) &&
-		(stack[stack.size() - 2]->number.size() == 1)) {
+	else if ((stack[stack.size() - 1]->size() == 1) &&
+		(stack[stack.size() - 2]->size() == 1)) {
 		/* small numbers both less than RMOD */
-		BIntPtr    Remainder(new BInt); Remainder->number.clear();
-		Quotient->number.push_back(stack[stack.size() - 2]->number[0] / stack[stack.size() - 1]->number[0]);
-		Remainder->number.push_back(stack[stack.size() - 2]->number[0] % stack[stack.size() - 1]->number[0]);
+		BIntPtr    Remainder(new BInt); Remainder->clear();
+		Quotient->push_back(stack[stack.size() - 2]->at(0) / stack[stack.size() - 1]->at(0));
+		Remainder->push_back(stack[stack.size() - 2]->at(0) % stack[stack.size() - 1]->at(0));
 		stack.pop_back(); stack.pop_back();
 		stack.push_back(Quotient);
 		stack.push_back(Remainder);
@@ -451,16 +408,16 @@ void Calculator::QuotientRemainder()
 					Quotient = Quotient + reminder *reciprocal ;
 			while  true
        	*/
-		int     reciprocal = (RMOD) /(2+ divisor.number.back());
-		BIntPtr _reciprocal(new BInt); _reciprocal->number.clear(); _reciprocal->number.push_back(reciprocal);
-		int     shift = (int)divisor.number.size();
+		int     reciprocal = (RMOD) /(2+ divisor.back());
+		BIntPtr _reciprocal(new BInt); _reciprocal->clear(); _reciprocal->push_back(reciprocal);
+		int     shift = (int)divisor.size();
 		BIntPtr _dividend(new BInt); Dup(*_dividend, dividend);
 		BIntPtr _divisor(new BInt);  Dup(*_divisor, divisor);
 
 		stack.push_back(_reciprocal);
 		stack.push_back(_dividend);
 		Mul(); 	
-		if (stack.back()->number.size())  for (int i = 0; i < shift;i++)
+		if (stack.back()->size())  for (int i = 0; i < shift;i++)
 			DIVRMOD(*stack.back());	
 
 		while(1)
@@ -488,7 +445,7 @@ void Calculator::QuotientRemainder()
 			Add();
 		}
 		/* we are done */
-		if (stack.back()->sign == -1)
+		if (stack.back()->size() && (stack.back()->at(0)& SIGNMASK))
 		{
 			stack.push_back(_divisor);
 			Add();

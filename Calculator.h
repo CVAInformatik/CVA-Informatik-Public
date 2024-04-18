@@ -19,7 +19,7 @@ If this is what you want to do, use the GNU Library General Public License inste
 #include <map>
 #include "PrimeFactorDFT.h"
 
-#if 0   // windows
+#ifdef OS_WINDOWS   // windows
 typedef unsigned __int64  u64;
 typedef __int64  s64; 
 #else   //linux
@@ -27,13 +27,15 @@ typedef  uint64_t  u64;
 typedef  int64_t  s64; 
 #endif
 
-typedef  struct _BInt
-{
-	int sign;
-	std::vector<int>  number;
-	_BInt() { sign = 1; number.clear(); /*number.push_back(0);*/ };
-} BInt;
+//typedef  struct _BInt
+//{
+//	int sign;
+//	std::vector<int>  number;
+//	_BInt() { sign = 1; number.clear(); /*number.push_back(0);*/ };
+//} BInt;
 
+#define SIGNMASK  0x80000000
+typedef std::vector<int> BInt;
 typedef std::shared_ptr<BInt> BIntPtr;
 
 /* 
@@ -45,7 +47,7 @@ typedef std::shared_ptr<BInt> BIntPtr;
 #define SMALLNUMBERLIMIT 1 
 
 //#define DUMPINT(x,y) DumpInt(x,y)
-#define DUMPINT(x,y) 
+//#define DUMPINT(x,y) 
 
 class Calculator 
 {
@@ -149,5 +151,5 @@ private:
 	uint  _Rand(uint UpperBound ); // _Rand returns a number in the range 0..UpperBound - 1
 	std::random_device rd;
 	std::uniform_int_distribution<uint>* dist;
-	void AddAux(int Asign, BInt& A, int Bsign, const BInt& B);
+	void AddAux(unsigned int Asign, BInt& A, unsigned int Bsign, const BInt& B);
 };

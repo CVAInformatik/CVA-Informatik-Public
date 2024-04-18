@@ -21,7 +21,7 @@ Inspiration originally from
 */
 #include <vector>
 
-#if 0   // windows
+#ifdef OS_WINDOWS    // windows
 #define WIN
 typedef unsigned __int64  u64;
 typedef __int64  s64;
